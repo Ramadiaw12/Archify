@@ -1,30 +1,37 @@
 # backend/config.py
 """
 Configuration de l'application — lue depuis le fichier .env
+Cherche .env dans backend/ d'abord, puis à la racine du projet.
 """
 
-import os
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from langchain_groq import ChatGroq  # ← IMPORT MANQUANT
+
+# Trouver le .env — supporte backend/.env et docsummarizer/.env
+_here = Path(__file__).parent        # backend/
+_root = _here.parent                 # docsummarizer/
+
+if (_here / ".env").exists():
+    _env_file = str(_here / ".env")
+else:
+    _env_file = str(_root / ".env")
 
 
 class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_env_file,
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore",  # Ignorer les champs supplémentaires
     )
 
-    # ── Clés API ──────────────────────────────────────────────────────────
+    # ── Clé API Groq ──────────────────────────────────────────────────────────
     groq_api_key: str = ""
-    hf_token: str = "" 
-    
-    # ── Modèle Groq ──────────────────────────────────────────────────────────
+
+    # ── Modèle ChatGroq ───────────────────────────────────────────────────────
     groq_model: str = "llama-3.3-70b-versatile"
-    
-    # ── Embedding local (aucune API requise) ──────────────────────────────────
+
+    # ── Embedding local ───────────────────────────────────────────────────────
     embedding_model: str = "all-MiniLM-L6-v2"
 
     # ── RAG ───────────────────────────────────────────────────────────────────
@@ -43,23 +50,8 @@ class Settings(BaseSettings):
     upload_dir: str = "/tmp/docsummarizer"
     delete_after_processing: bool = True
 
-    # ── Propriété pour obtenir le LLM (recommended) ───────────────────────────
-    @property
-    def llm(self):
-        """Initialise le LLM Groq avec la configuration actuelle"""
-        if not self.groq_api_key:
-            raise ValueError("GROQ_API_KEY n'est pas définie dans .env")
-        return ChatGroq(
-            model=self.groq_model,
-            api_key=self.groq_api_key,
-            temperature=0,
-        )
 
-
-# Créer l'instance des settings
 settings = Settings()
-
-# Optionnel : vérifier que la clé API est présente
-if not settings.groq_api_key:
-    print("⚠️  ATTENTION: GROQ_API_KEY non trouvée dans .env")
-    print("   Le serveur pourra démarrer mais l'appel à Groq échouera.")
+print(f"[Config] .env chargé depuis : {_env_file}")
+print(f"[Config] GROQ_API_KEY : {'✅ définie' if settings.groq_api_key else '❌ MANQUANTE'}")
+print(f"[Config] GROQ_MODEL   : {settings.groq_model}")

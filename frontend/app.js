@@ -194,7 +194,7 @@ async function animatePipeline() {
     { label: "Génération des embeddings…",   ms: 900  },
     { label: "Classification Groq…",         ms: 600  },
     { label: "Routage LangGraph…",           ms: 500  },
-    { label: "Génération Claude LLM…",       ms: 1300 },
+    { label: "Génération Groq LLM…",           ms: 1300 },
   ];
 
   for (let i = 0; i < steps.length; i++) {
@@ -419,7 +419,7 @@ function renderTab(tab, data) {
       const p = data.pipeline || {};
       const g = p.groq_meta || {};
       const rows = [
-        ["Modèle LLM",          p.llm_model       || "Claude"],
+        ["Modèle LLM",          p.model           || "Groq"],
         ["Embedding (RAG)",     p.embedding_model  || "all-MiniLM-L6-v2"],
         ["Route détectée",      p.route            || "-"],
         ["Langue de sortie",    p.language         || "-"],
