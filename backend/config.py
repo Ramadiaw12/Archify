@@ -3,7 +3,9 @@
 Configuration de l'application — lue depuis le fichier .env
 """
 
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from langchain_groq import ChatGroq  # ← IMPORT MANQUANT
 
 
 class Settings(BaseSettings):
@@ -12,13 +14,13 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",  # Ignorer les champs supplémentaires
     )
 
     # ── Clé API Groq ──────────────────────────────────────────────────────────
     groq_api_key: str = ""
 
     # ── Modèle Groq — défini dans votre .env ─────────────────────────────────
-    # Mettez le nom exact du modèle affiché dans votre console Groq
     groq_model: str = "mixtral-8x7b-32768"
 
     # ── Embedding local (aucune API requise) ──────────────────────────────────
@@ -40,5 +42,23 @@ class Settings(BaseSettings):
     upload_dir: str = "/tmp/docsummarizer"
     delete_after_processing: bool = True
 
+    # ── Propriété pour obtenir le LLM (recommended) ───────────────────────────
+    @property
+    def llm(self):
+        """Initialise le LLM Groq avec la configuration actuelle"""
+        if not self.groq_api_key:
+            raise ValueError("GROQ_API_KEY n'est pas définie dans .env")
+        return ChatGroq(
+            model=self.groq_model,
+            api_key=self.groq_api_key,
+            temperature=0,
+        )
 
+
+# Créer l'instance des settings
 settings = Settings()
+
+# Optionnel : vérifier que la clé API est présente
+if not settings.groq_api_key:
+    print("⚠️  ATTENTION: GROQ_API_KEY non trouvée dans .env")
+    print("   Le serveur pourra démarrer mais l'appel à Groq échouera.")

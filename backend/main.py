@@ -24,6 +24,7 @@ from document_parser import DocumentParser
 from agent import run_agent
 
 
+
 # ── Démarrage / arrêt ─────────────────────────────────────────────────────────
 
 @asynccontextmanager
