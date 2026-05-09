@@ -173,6 +173,7 @@ async def summarize(
         )
 
         if result.get("error"):
+            print(f"[Agent ERROR] {result['error']}")   # Log dans le terminal
             raise HTTPException(status_code=503, detail=result["error"])
 
         # Statistiques
@@ -210,6 +211,8 @@ async def summarize(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        traceback.print_exc()          # Affiche l'erreur complète dans le terminal
         raise HTTPException(status_code=500, detail=f"Erreur interne : {e}")
     finally:
         if os.path.exists(tmp_path):
