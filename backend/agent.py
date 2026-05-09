@@ -183,7 +183,7 @@ def node_classify(state: AgentState) -> AgentState:
         )
 
         resp = client.chat.completions.create(
-            model=settings.groq_model,
+            model=settings.groq_model_fast,   # llama3-8b-8192 — rapide
             messages=[{"role": "user", "content": prompt}],
             max_tokens=150,
             temperature=0.1,
@@ -238,13 +238,14 @@ def node_route(state: AgentState) -> AgentState:
 
 def node_summarize(state: AgentState) -> AgentState:
     """
-    Nœud 5 — Claude (Anthropic)
+    Nœud 5 — Groq (LLaMA 70B)
     Génère le résumé structuré en JSON à partir du contexte RAG.
+    Utilise groq_model_main (llama3-70b-8192) pour la meilleure qualité.
     """
-    if not settings.anthropic_api_key:
-        return {**state, "error": "ANTHROPIC_API_KEY non définie."}
+    if not settings.groq_api_key:
+        return {**state, "error": "GROQ_API_KEY non définie. Ajoutez-la dans votre fichier .env"}
 
-    import anthropic
+    from groq import Groq
 
     # ── Construction des prompts ──────────────────────────────────────────────
 
@@ -261,18 +262,18 @@ def node_summarize(state: AgentState) -> AgentState:
     style_label = style_map.get(state["style"], style_map["concis"])
 
     route_context = {
-        "court":         "Document court — aller à l'essentiel immédiatement.",
-        "pedagogique":   "Document pédagogique — mettre en valeur les concepts clés et la progression.",
-        "scientifique":  "Article scientifique — souligner méthodologie, résultats et limites.",
-        "rapport_formel":"Rapport formel — structurer avec contexte, analyse et recommandations.",
-        "general":       "Document général — synthèse équilibrée.",
+        "court":          "Document court — aller à l'essentiel immédiatement.",
+        "pedagogique":    "Document pédagogique — mettre en valeur les concepts clés et la progression.",
+        "scientifique":   "Article scientifique — souligner méthodologie, résultats et limites.",
+        "rapport_formel": "Rapport formel — structurer avec contexte, analyse et recommandations.",
+        "general":        "Document général — synthèse équilibrée.",
     }
     route_hint = route_context.get(state["route"], route_context["general"])
 
     include = state.get("include", {})
     inclusions = []
     if include.get("keypoints", True):
-        inclusions.append("3 à 7 points clés extraits verbatim du document")
+        inclusions.append("3 à 7 points clés extraits du document")
     if include.get("stats"):
         inclusions.append("les chiffres et statistiques importants mentionnés")
     if include.get("quotes"):
@@ -282,18 +283,21 @@ def node_summarize(state: AgentState) -> AgentState:
     if include.get("conclusion", True):
         inclusions.append("une conclusion synthétique en 1-2 phrases")
 
-    system_prompt = f"""Tu es un agent expert en analyse documentaire et NLP.
-Tu utilises un pipeline RAG (Retrieval-Augmented Generation) avec LangGraph pour extraire \
-les informations les plus pertinentes d'un document.
+    inclusions_text = "\n- ".join(inclusions) if inclusions else "résumé général"
+
+    # Groq utilise le format messages (pas de paramètre system séparé)
+    # On intègre le system prompt dans le premier message user
+    full_prompt = f"""Tu es un agent expert en analyse documentaire et NLP.
+Tu utilises un pipeline RAG (Retrieval-Augmented Generation) avec LangGraph.
 
 RÈGLES STRICTES :
 1. Réponds UNIQUEMENT en {lang_label}.
-2. Réponds UNIQUEMENT avec un objet JSON valide. Aucun texte avant ou après.
+2. Réponds UNIQUEMENT avec un objet JSON valide. Aucun texte avant ou après. Pas de markdown.
 3. Ne jamais inventer d'informations absentes du document fourni.
 4. Niveau de détail demandé : {state['detail_level']}/5.
 5. Contexte de routage : {route_hint}
 
-FORMAT JSON OBLIGATOIRE (respecter exactement ces clés) :
+FORMAT JSON OBLIGATOIRE :
 {{
   "summary": "Résumé principal selon le style demandé",
   "key_points": ["Point 1", "Point 2", "Point 3"],
@@ -301,12 +305,14 @@ FORMAT JSON OBLIGATOIRE (respecter exactement ces clés) :
   "sentiment": "positif|neutre|négatif",
   "complexity": "simple|intermédiaire|complexe",
   "main_topics": ["Sujet 1", "Sujet 2", "Sujet 3"]
-}}"""
+}}
 
-    user_prompt = f"""Génère {style_label} de ce document.
+---
+
+TÂCHE : Génère {style_label} de ce document.
 
 ÉLÉMENTS À INCLURE :
-- {chr(10) + '- '.join(inclusions) if inclusions else 'résumé général'}
+- {inclusions_text}
 
 PASSAGES LES PLUS PERTINENTS (sélectionnés par RAG) :
 {state['context'][:4000]}
@@ -314,31 +320,35 @@ PASSAGES LES PLUS PERTINENTS (sélectionnés par RAG) :
 DÉBUT DU DOCUMENT COMPLET :
 {state['raw_text'][:2500]}
 
-Génère l'objet JSON maintenant."""
+Génère maintenant l'objet JSON uniquement, sans aucun texte autour."""
 
-    # ── Appel API ─────────────────────────────────────────────────────────────
+    # ── Appel API Groq ────────────────────────────────────────────────────────
 
     try:
-        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-        message = client.messages.create(
-            model=settings.claude_model,
+        client = Groq(api_key=settings.groq_api_key)
+
+        response = client.chat.completions.create(
+            model=settings.groq_model_main,   # llama3-70b-8192
+            messages=[
+                {"role": "user", "content": full_prompt}
+            ],
             max_tokens=2048,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_prompt}],
+            temperature=0.3,   # Légèrement créatif mais cohérent
         )
-        raw = message.content[0].text.strip()
+
+        raw = response.choices[0].message.content.strip()
         parsed = _parse_json_safe(raw)
 
         if not parsed:
             # Fallback : retourner le texte brut comme résumé
             return {
                 **state,
-                "summary": raw,
-                "key_points": [],
+                "summary":       raw,
+                "key_points":    [],
                 "document_type": "Document",
-                "sentiment": "neutre",
-                "complexity": "intermédiaire",
-                "main_topics": [],
+                "sentiment":     "neutre",
+                "complexity":    "intermédiaire",
+                "main_topics":   [],
             }
 
         return {
@@ -352,7 +362,7 @@ Génère l'objet JSON maintenant."""
         }
 
     except Exception as e:
-        return {**state, "error": f"Erreur Claude : {e}"}
+        return {**state, "error": f"Erreur Groq : {e}"}
 
 
 # ── Construction du graphe LangGraph ──────────────────────────────────────────

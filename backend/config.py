@@ -2,6 +2,8 @@
 """
 Configuration centralisée via pydantic-settings.
 Lit automatiquement les variables depuis .env ou l'environnement système.
+
+LLM utilisé : Groq (llama3 / mixtral) — PAS Anthropic, PAS xAI.
 """
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -19,18 +21,25 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    # ── Clés API ──────────────────────────────────────────────────────────
-    anthropic_api_key: str = ""   # Claude — LLM principal
-    groq_api_key: str = ""        # Groq / LLaMA — pré-traitement optionnel
+    # ── Clé API ───────────────────────────────────────────────────────────
+    # Groq — LLM principal ET pré-traitement
+    # Obtenir sur : https://console.groq.com/
+    groq_api_key: str = ""
 
-    # ── Modèles ───────────────────────────────────────────────────────────
-    claude_model: str = "claude-3-5-sonnet-20241022"
-    groq_model: str = "llama3-8b-8192"
-    embedding_model: str = "all-MiniLM-L6-v2"   # Local, aucune API requise
+    # ── Modèles Groq ──────────────────────────────────────────────────────
+    # Modèle principal pour la génération du résumé (puissant)
+    groq_model_main: str = "llama3-70b-8192"
+
+    # Modèle rapide pour la pré-classification du document
+    groq_model_fast: str = "llama3-8b-8192"
+
+    # ── Embedding ─────────────────────────────────────────────────────────
+    # Modèle local — aucune API requise, tourne sur votre machine
+    embedding_model: str = "all-MiniLM-L6-v2"
 
     # ── RAG ───────────────────────────────────────────────────────────────
-    chunk_size: int = 800        # Taille cible d'un chunk (mots)
-    chunk_overlap: int = 100     # Mots de chevauchement entre chunks
+    chunk_size: int = 800        # Taille cible d'un chunk (en mots)
+    chunk_overlap: int = 100     # Chevauchement entre deux chunks consécutifs
     top_k_chunks: int = 5        # Nombre de chunks retournés par le retriever
 
     # ── Serveur ───────────────────────────────────────────────────────────
@@ -42,9 +51,9 @@ class Settings(BaseSettings):
     max_file_size_mb: int = 20
     allowed_extensions: list[str] = [".pdf", ".docx", ".doc", ".txt", ".md", ".rtf"]
     upload_dir: str = "/tmp/docsummarizer"
-    # Supprimer le fichier dès que le traitement est terminé
+    # Supprimer le fichier immédiatement après traitement (confidentialité)
     delete_after_processing: bool = True
 
 
-# Singleton importé partout dans l'app
+# Singleton importé dans tous les modules de l'app
 settings = Settings()
