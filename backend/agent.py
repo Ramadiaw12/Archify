@@ -2,14 +2,16 @@
 """
 Agent LangGraph — Pipeline de résumé de documents.
 
-LLM : ChatGroq (langchain-groq)
-  llm = ChatGroq(
-      model=settings.groq_model,
-      api_key=settings.groq_api_key,
+LLM : Client Groq NATIF (pas LangChain) pour éviter le bug httpx/proxies.
+  from groq import Groq
+  client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+  response = client.chat.completions.create(
+      model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+      messages=[...],
       temperature=0,
   )
 
-Graphe :
+Graphe LangGraph :
   [START] → chunk_and_embed → retrieve → classify → route → summarize → [END]
 """
 
@@ -18,8 +20,7 @@ import os
 import re
 from typing import Any
 
-from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, SystemMessage
+from groq import Groq
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
 
@@ -27,18 +28,38 @@ from config import settings
 from rag import TextChunker, EmbeddingEngine, VectorStore, Chunk
 
 
-# ── LLM partagé — instancié une seule fois ───────────────────────────────────
+# ── Client Groq natif ─────────────────────────────────────────────────────────
 
-def _get_llm() -> ChatGroq:
-    """Retourne une instance ChatGroq prête à l'emploi."""
-    return ChatGroq(
-        model=settings.groq_model,
-        api_key=settings.groq_api_key,
+def _get_client() -> Groq:
+    """
+    Retourne le client Groq natif.
+    Utilise os.getenv() directement — plus fiable que pydantic-settings.
+    """
+    return Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+
+def _chat(messages: list[dict], max_tokens: int = 2048) -> str:
+    """
+    Appel simplifié au client Groq natif.
+
+    Args:
+        messages   : liste de dicts {"role": "user"|"system", "content": "..."}
+        max_tokens : limite de tokens en sortie
+
+    Returns:
+        Contenu texte de la réponse
+    """
+    client   = _get_client()
+    response = client.chat.completions.create(
+        model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        messages=messages,
         temperature=0,
+        max_tokens=max_tokens,
     )
+    return response.choices[0].message.content or ""
 
 
-# ── État du graphe ────────────────────────────────────────────────────────────
+# ── État du graphe LangGraph ─────────────────────────────────────────────────
 
 class AgentState(TypedDict):
     # Entrées
@@ -114,13 +135,12 @@ def node_chunk_and_embed(state: AgentState) -> AgentState:
     return {**state, "chunks": chunks_data}
 
 
-# ── Nœud 2 : Retrieval RAG ────────────────────────────────────────────────────
+# ── Nœud 2 : Retrieval RAG ───────────────────────────────────────────────────
 
 def node_retrieve(state: AgentState) -> AgentState:
     """
     Sélectionne les chunks les plus pertinents par similarité cosinus.
-    Utilise embed_with_query() — chunks + requête encodés ensemble
-    pour garantir la même dimension vectorielle.
+    embed_with_query() encode chunks + requête ensemble → même dimension garantie.
     """
     if not state["chunks"]:
         return state
@@ -144,47 +164,49 @@ def node_retrieve(state: AgentState) -> AgentState:
     return {**state, "context": context}
 
 
-# ── Nœud 3 : Classification via ChatGroq ─────────────────────────────────────
+# ── Nœud 3 : Classification Groq ────────────────────────────────────────────
 
 def node_classify(state: AgentState) -> AgentState:
-    """
-    Classe rapidement le document (type, domaine, complexité).
-
-    Utilise ChatGroq avec un prompt court pour une réponse rapide.
-    """
-    if not settings.groq_api_key:
+    """Classe le document (type, domaine, complexité) via Groq natif."""
+    if not os.getenv("GROQ_API_KEY"):
         return state
 
     try:
-        llm     = _get_llm()
         preview = " ".join(state["raw_text"].split()[:300])
-
-        messages = [
-            SystemMessage(content=(
-                "Tu es un classificateur de documents. "
-                "Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans texte autour."
-            )),
-            HumanMessage(content=(
-                "Analyse ce début de document et retourne :\n"
-                '{"document_type":"rapport|lecon|article|livre|email|autre",'
-                '"domain":"informatique|medecine|droit|economie|education|science|autre",'
-                '"complexity":"simple|intermediaire|complexe"}\n\n'
-                f"Texte : {preview}"
-            )),
-        ]
-
-        response = llm.invoke(messages)
-        meta     = _parse_json(response.content)
+        raw     = _chat(
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu es un classificateur de documents. "
+                        "Réponds UNIQUEMENT avec un objet JSON valide, "
+                        "sans markdown, sans texte autour."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        "Analyse ce début de document et retourne :\n"
+                        '{"document_type":"rapport|lecon|article|livre|email|autre",'
+                        '"domain":"informatique|medecine|droit|economie|education|science|autre",'
+                        '"complexity":"simple|intermediaire|complexe"}\n\n'
+                        f"Texte : {preview}"
+                    ),
+                },
+            ],
+            max_tokens=150,
+        )
+        meta = _parse_json(raw)
         return {**state, "groq_meta": meta}
 
     except Exception:
-        return state  # Ne jamais bloquer le pipeline
+        return state   # Ne jamais bloquer le pipeline
 
 
-# ── Nœud 4 : Routage ─────────────────────────────────────────────────────────
+# ── Nœud 4 : Routage ────────────────────────────────────────────────────────
 
 def node_route(state: AgentState) -> AgentState:
-    """Choisit la stratégie de résumé selon le type de document détecté."""
+    """Choisit la stratégie de résumé selon le type de document."""
     text_lower = state["raw_text"].lower()
     word_count = len(state["raw_text"].split())
     doc_type   = state.get("groq_meta", {}).get("document_type", "")
@@ -218,28 +240,30 @@ def node_route(state: AgentState) -> AgentState:
     return {**state, "route": route}
 
 
-# ── Nœud 5 : Résumé via ChatGroq ─────────────────────────────────────────────
+# ── Nœud 5 : Résumé Groq ────────────────────────────────────────────────────
 
 def node_summarize(state: AgentState) -> AgentState:
     """
-    Génère le résumé structuré JSON via ChatGroq.
+    Génère le résumé JSON structuré via le client Groq natif.
 
-    llm = ChatGroq(
-        model=settings.groq_model,
-        api_key=settings.groq_api_key,
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    response = client.chat.completions.create(
+        model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        messages=[{"role": "system", ...}, {"role": "user", ...}],
         temperature=0,
     )
     """
-    if not settings.groq_api_key:
+    if not os.getenv("GROQ_API_KEY"):
         return {
             **state,
             "error": (
-                "GROQ_API_KEY manquante dans votre fichier .env\n"
-                "Clé gratuite sur : https://console.groq.com/"
+                "GROQ_API_KEY manquante.\n"
+                "Ajoutez-la dans backend/.env\n"
+                "Clé gratuite : https://console.groq.com/"
             ),
         }
 
-    # ── Préparation des instructions ──────────────────────────────────────────
+    # ── Construction du prompt ────────────────────────────────────────────────
 
     lang_map = {
         "fr": "français",
@@ -282,15 +306,13 @@ def node_summarize(state: AgentState) -> AgentState:
 
     inclusions_str = "\n- ".join(inclusions) if inclusions else "résumé général"
 
-    # ── Messages LangChain ────────────────────────────────────────────────────
-
-    system_msg = SystemMessage(content=f"""Tu es un agent expert en analyse documentaire NLP (pipeline RAG + LangGraph).
+    system_content = f"""Tu es un agent expert en analyse documentaire NLP (pipeline RAG + LangGraph).
 
 RÈGLES STRICTES :
 1. Réponds UNIQUEMENT en {lang_label}.
 2. Réponds UNIQUEMENT avec un objet JSON valide. Aucun texte avant ou après.
 3. N'invente aucune information absente du document.
-4. Niveau de détail demandé : {state['detail_level']}/5.
+4. Niveau de détail : {state['detail_level']}/5.
 5. {route_hint}
 
 FORMAT JSON OBLIGATOIRE :
@@ -301,9 +323,9 @@ FORMAT JSON OBLIGATOIRE :
   "sentiment": "positif|neutre|négatif",
   "complexity": "simple|intermédiaire|complexe",
   "main_topics": ["Sujet 1", "Sujet 2"]
-}}""")
+}}"""
 
-    user_msg = HumanMessage(content=f"""Génère {style_label} de ce document.
+    user_content = f"""Génère {style_label} de ce document.
 
 ÉLÉMENTS À INCLURE :
 - {inclusions_str}
@@ -314,18 +336,21 @@ PASSAGES CLÉS SÉLECTIONNÉS PAR RAG :
 DÉBUT DU DOCUMENT :
 {state['raw_text'][:2500]}
 
-JSON :""")
+JSON :"""
 
-    # ── Appel ChatGroq ────────────────────────────────────────────────────────
+    # ── Appel Groq natif ──────────────────────────────────────────────────────
 
     try:
-        llm      = _get_llm()
-        response = llm.invoke([system_msg, user_msg])
-        raw      = response.content or ""
-        parsed   = _parse_json(raw)
+        raw    = _chat(
+            messages=[
+                {"role": "system", "content": system_content},
+                {"role": "user",   "content": user_content},
+            ],
+            max_tokens=2048,
+        )
+        parsed = _parse_json(raw)
 
         if not parsed:
-            # Fallback : texte brut comme résumé
             return {
                 **state,
                 "summary":       raw.strip(),
@@ -347,7 +372,7 @@ JSON :""")
         }
 
     except Exception as e:
-        return {**state, "error": f"Erreur ChatGroq : {e}"}
+        return {**state, "error": f"Erreur Groq : {e}"}
 
 
 # ── Construction du graphe LangGraph ─────────────────────────────────────────
@@ -371,7 +396,7 @@ def build_graph() -> Any:
     return builder.compile()
 
 
-# Graphe compilé — réutilisé pour chaque requête
+# Graphe compilé — réutilisé pour toutes les requêtes
 graph = build_graph()
 
 
@@ -385,6 +410,7 @@ def run_agent(
     detail_level: int = 3,
     include:      dict | None = None,
 ) -> AgentState:
+    """Lance le pipeline complet sur un texte extrait."""
     initial: AgentState = {
         **_defaults(),
         "raw_text":     raw_text,
