@@ -1,0 +1,19 @@
+# docker-compose.yml
+version: "3.9"
+
+services:
+  docsummarizer:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: docsummarizer
+    ports:
+      - "8000:8000"
+    env_file:
+      - backend/.env          # key GROQ_API_KEY
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - /tmp/docsummarizer:/tmp/docsummarizer   # dossier temp uploads
+    restart: unless-stopped
