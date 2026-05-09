@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocSummarizer — Résumé intelligent de documents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════ HEADER -->
+  <header class="header">
+    <div class="container header-inner">
+
+      <div class="logo">
+        <div class="logo-mark" aria-hidden="true">✦</div>
+        <span class="logo-name">DocSummarizer</span>
+      </div>
+
+      <div class="header-tags" aria-label="Technologies utilisées">
+        <span class="tag tag-orange">RAG</span>
+        <span class="tag tag-brown">LangGraph</span>
+        <span class="tag tag-green">Claude AI</span>
+        <span class="tag tag-amber">Groq</span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════ HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container hero-inner">
+      <h1 class="hero-title" id="hero-title">
+        Votre agent de résumé<br />
+        <em>intelligent</em>
+      </h1>
+      <p class="hero-sub">
+        Déposez un rapport, une leçon ou un PDF —
+        notre pipeline <strong>RAG + LangGraph + Claude</strong>
+        en extrait l'essentiel de façon claire et précise.
+      </p>
+      <div class="hero-security" role="note">
+        <span class="lock-icon" aria-hidden="true">🔒</span>
+        Vos documents sont supprimés immédiatement après traitement — aucun stockage
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ MAIN -->
+  <main class="container main-layout">
+
+    <!-- ──────────────────────────── COLONNE FORMULAIRE -->
+    <div class="form-column">
+
+      <!-- ÉTAPE 1 — Upload -->
+      <section class="card" aria-labelledby="s1-title">
+        <header class="card-head">
+          <span class="step-num" aria-hidden="true">01</span>
+          <h2 class="card-title" id="s1-title">Télécharger votre document</h2>
+        </header>
+
+        <!-- Zone de dépôt -->
+        <div
+          class="dropzone"
+          id="dropzone"
+          role="button"
+          tabindex="0"
+          aria-label="Zone de dépôt — cliquer ou glisser un fichier"
+          aria-describedby="drop-types"
+        >
+          <input
+            type="file"
+            id="file-input"
+            accept=".pdf,.doc,.docx,.txt,.md,.rtf"
+            aria-label="Choisir un fichier"
+          />
+          <div class="drop-icon" aria-hidden="true">⬆</div>
+          <p class="drop-title">Glissez votre fichier ici</p>
+          <p class="drop-sub">ou <span class="link-text">cliquer pour parcourir</span></p>
+          <div class="drop-formats" id="drop-types" aria-label="Formats acceptés">
+            <span class="fmt">PDF</span>
+            <span class="fmt">DOCX</span>
+            <span class="fmt">TXT</span>
+            <span class="fmt">MD</span>
+            <span class="fmt">RTF</span>
+          </div>
+        </div>
+
+        <!-- Aperçu fichier sélectionné -->
+        <div class="file-preview" id="file-preview" hidden>
+          <div class="file-card" id="file-card"></div>
+        </div>
+      </section>
+
+      <!-- ÉTAPE 2 — Options -->
+      <section class="card" aria-labelledby="s2-title">
+        <header class="card-head">
+          <span class="step-num" aria-hidden="true">02</span>
+          <h2 class="card-title" id="s2-title">Paramètres du résumé</h2>
+        </header>
+
+        <div class="fields-row">
+          <div class="field">
+            <label class="field-label" for="sel-style">Style de résumé</label>
+            <select class="select" id="sel-style">
+              <option value="concis">Concis (2-3 §)</option>
+              <option value="detaille">Détaillé (4-6 §)</option>
+              <option value="bullet">Points clés (liste)</option>
+              <option value="executif">Rapport exécutif</option>
+              <option value="pedagogique">Fiche pédagogique</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="sel-lang">Langue de sortie</label>
+            <select class="select" id="sel-lang">
+              <option value="fr">🇫🇷  Français</option>
+              <option value="en">🇬🇧  Anglais</option>
+              <option value="ar">🇲🇦  Arabe</option>
+              <option value="es">🇪🇸  Espagnol</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="range-detail">
+            Niveau de détail —
+            <span class="range-val" id="range-val">3 / 5</span>
+          </label>
+          <input
+            type="range"
+            class="range-input"
+            id="range-detail"
+            min="1" max="5" value="3" step="1"
+            aria-valuemin="1" aria-valuemax="5" aria-valuenow="3"
+          />
+          <div class="range-ends" aria-hidden="true">
+            <span>Bref</span>
+            <span>Exhaustif</span>
+          </div>
+        </div>
+
+        <fieldset class="field toggles-group">
+          <legend class="field-label">Inclure dans le résumé</legend>
+          <div class="toggles" id="toggles" role="group">
+            <button class="toggle on" type="button" data-key="keypoints">Points clés</button>
+            <button class="toggle on" type="button" data-key="stats">Chiffres</button>
+            <button class="toggle"    type="button" data-key="quotes">Citations</button>
+            <button class="toggle"    type="button" data-key="entities">Entités</button>
+            <button class="toggle on" type="button" data-key="conclusion">Conclusion</button>
+          </div>
+        </fieldset>
+
+      </section>
+
+      <!-- ÉTAPE 3 — Pipeline + Lancer -->
+      <section class="card" aria-labelledby="s3-title">
+        <header class="card-head">
+          <span class="step-num" aria-hidden="true">03</span>
+          <h2 class="card-title" id="s3-title">Pipeline de traitement</h2>
+        </header>
+
+        <!-- Visualisation du pipeline -->
+        <div class="pipeline" id="pipeline" role="list" aria-label="Étapes du pipeline">
+          <div class="pipe-step" id="pipe-0" role="listitem" aria-label="Extraction">
+            <div class="pipe-icon">📄</div>
+            <div class="pipe-lbl">Extraction</div>
+          </div>
+          <div class="pipe-arrow" aria-hidden="true">→</div>
+          <div class="pipe-step" id="pipe-1" role="listitem" aria-label="RAG Chunking">
+            <div class="pipe-icon">🧩</div>
+            <div class="pipe-lbl">RAG</div>
+          </div>
+          <div class="pipe-arrow" aria-hidden="true">→</div>
+          <div class="pipe-step" id="pipe-2" role="listitem" aria-label="Embedding">
+            <div class="pipe-icon">🔢</div>
+            <div class="pipe-lbl">Embed</div>
+          </div>
+          <div class="pipe-arrow" aria-hidden="true">→</div>
+          <div class="pipe-step" id="pipe-3" role="listitem" aria-label="Groq">
+            <div class="pipe-icon">⚡</div>
+            <div class="pipe-lbl">Groq</div>
+          </div>
+          <div class="pipe-arrow" aria-hidden="true">→</div>
+          <div class="pipe-step" id="pipe-4" role="listitem" aria-label="LangGraph">
+            <div class="pipe-icon">🌿</div>
+            <div class="pipe-lbl">Graph</div>
+          </div>
+          <div class="pipe-arrow" aria-hidden="true">→</div>
+          <div class="pipe-step" id="pipe-5" role="listitem" aria-label="Claude LLM">
+            <div class="pipe-icon">🤖</div>
+            <div class="pipe-lbl">Claude</div>
+          </div>
+        </div>
+
+        <!-- Barre de progression (cachée par défaut) -->
+        <div id="progress-area" hidden>
+          <div
+            class="progress-bar"
+            role="progressbar"
+            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+          >
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p class="progress-msg" id="progress-msg" aria-live="polite">Initialisation…</p>
+        </div>
+
+        <!-- Alertes -->
+        <div id="alert-area" role="alert" aria-live="assertive"></div>
+
+        <!-- Bouton principal -->
+        <button
+          class="btn-primary"
+          id="btn-go"
+          type="button"
+          disabled
+          aria-disabled="true"
+        >
+          ✦ &nbsp; Analyser et générer le résumé
+        </button>
+
+      </section>
+    </div>
+
+    <!-- ──────────────────────────── COLONNE RÉSULTATS -->
+    <div class="result-column">
+
+      <!-- État vide -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon" aria-hidden="true">📋</div>
+        <p class="empty-title">Le résumé apparaîtra ici</p>
+        <p class="empty-sub">
+          Chargez un document, configurez vos préférences<br />et lancez l'analyse.
+        </p>
+      </div>
+
+      <!-- Panneau de résultats (caché jusqu'au premier résumé) -->
+      <div class="result-panel" id="result-panel" hidden aria-live="polite">
+
+        <!-- En-tête résultat -->
+        <div class="result-head">
+          <div class="result-badges" id="result-badges"></div>
+          <button
+            class="btn-copy"
+            id="btn-copy"
+            type="button"
+            title="Copier le résumé"
+            aria-label="Copier le résumé dans le presse-papier"
+          >
+            📋 Copier
+          </button>
+        </div>
+
+        <!-- Onglets -->
+        <div class="tabs" role="tablist" aria-label="Sections du résumé">
+          <button class="tab active" role="tab" aria-selected="true"  data-tab="summary"   aria-controls="panel-summary">Résumé</button>
+          <button class="tab"        role="tab" aria-selected="false" data-tab="keypoints" aria-controls="panel-keypoints">Points clés</button>
+          <button class="tab"        role="tab" aria-selected="false" data-tab="stats"     aria-controls="panel-stats">Statistiques</button>
+          <button class="tab"        role="tab" aria-selected="false" data-tab="pipeline"  aria-controls="panel-pipeline">Pipeline</button>
+        </div>
+
+        <!-- Contenu onglets -->
+        <div class="tab-body" id="tab-body" role="tabpanel"></div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════ FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p class="footer-stack">
+        Pipeline NLP open-source :
+        <strong>RAG</strong> · <strong>LangGraph</strong> ·
+        <strong>Claude (Anthropic)</strong> · <strong>Groq / LLaMA</strong> ·
+        <strong>FastAPI</strong> · <strong>uv</strong>
+      </p>
+      <p class="footer-privacy">
+        🔒 Aucun document n'est conservé — suppression immédiate après traitement
+      </p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
