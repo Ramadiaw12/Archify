@@ -58,10 +58,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Servir les fichiers statiques du frontend
+# Chemin vers le dossier frontend (relatif à ce fichier)
 _frontend_dir = Path(__file__).parent.parent / "frontend"
-if _frontend_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(_frontend_dir)), name="static")
+
+if not _frontend_dir.exists():
+    print(f"⚠️  Dossier frontend introuvable : {_frontend_dir}")
 
 # Singletons
 _parser = DocumentParser()
@@ -74,8 +75,20 @@ async def index():
     """Sert la page principale du frontend."""
     index_path = _frontend_dir / "index.html"
     if index_path.exists():
-        return FileResponse(str(index_path))
+        return FileResponse(str(index_path), media_type="text/html")
     return JSONResponse({"message": "DocSummarizer API — Frontend introuvable."})
+
+
+@app.get("/style.css", include_in_schema=False)
+async def css():
+    """Sert la feuille de style."""
+    return FileResponse(str(_frontend_dir / "style.css"), media_type="text/css")
+
+
+@app.get("/app.js", include_in_schema=False)
+async def js():
+    """Sert le JavaScript principal."""
+    return FileResponse(str(_frontend_dir / "app.js"), media_type="application/javascript")
 
 
 @app.get("/api/health", tags=["Système"])
@@ -84,11 +97,10 @@ async def health():
     return {
         "status": "ok",
         "version": "1.0.0",
-        "anthropic_configured": bool(settings.anthropic_api_key),
-        "groq_configured":      bool(settings.groq_api_key),
+        "groq_configured": bool(settings.groq_api_key),
         "models": {
-            "llm":       settings.claude_model,
-            "groq":      settings.groq_model,
+            "llm_main":  settings.groq_model_main,
+            "llm_fast":  settings.groq_model_fast,
             "embedding": settings.embedding_model,
         },
     }
@@ -98,22 +110,22 @@ async def health():
 async def models():
     """Retourne la configuration des modèles utilisés."""
     return {
-        "claude": {
-            "provider": "Anthropic",
-            "model":    settings.claude_model,
-            "role":     "LLM principal — génération du résumé",
-            "active":   bool(settings.anthropic_api_key),
-        },
-        "groq": {
+        "groq_main": {
             "provider": "Groq",
-            "model":    settings.groq_model,
-            "role":     "Pré-classification du document (optionnel)",
+            "model":    settings.groq_model_main,
+            "role":     "LLM principal — génération du résumé (llama3-70b)",
+            "active":   bool(settings.groq_api_key),
+        },
+        "groq_fast": {
+            "provider": "Groq",
+            "model":    settings.groq_model_fast,
+            "role":     "Pré-classification rapide du document (llama3-8b)",
             "active":   bool(settings.groq_api_key),
         },
         "embedding": {
             "provider": "SentenceTransformers (local)",
             "model":    settings.embedding_model,
-            "role":     "Génération des vecteurs RAG",
+            "role":     "Génération des vecteurs RAG — aucune API requise",
             "active":   True,
         },
     }
@@ -265,8 +277,8 @@ async def summarize(
                 "route":           result["route"],
                 "language":        result["language"],
                 "embedding_model": settings.embedding_model,
-                "llm_model":       settings.claude_model,
-                "groq_used":       bool(settings.groq_api_key),
+                "llm_model":       settings.groq_model_main,
+                "llm_provider":    "Groq",
                 "groq_meta":       result.get("groq_meta", {}),
             },
         }
