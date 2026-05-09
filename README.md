@@ -626,10 +626,31 @@ git commit -m "feat(rag): add persistent ChromaDB store"
 
 ---
 
+## 👩‍💻 Author
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center" style="padding: 20px;">
+<br/>
+<strong style="font-size:18px;">DIAWANE Ramatoulaye</strong>
+<br/><br/>
+<a href="mailto:rdiawane2001@gmail.com">
+  <img src="https://img.shields.io/badge/Gmail-rdiawane2001%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white"/>
+</a>
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
 <div align="center">
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer" width="100%"/>
 
-**Built with** ❤️ **using RAG · LangGraph · Groq · FastAPI · uv**
+**Built with** ❤️ **by DIAWANE Ramatoulaye — RAG · LangGraph · Groq · FastAPI · uv**
 
 </div>
