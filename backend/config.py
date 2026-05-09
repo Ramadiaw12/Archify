@@ -17,12 +17,13 @@ class Settings(BaseSettings):
         extra="ignore",  # Ignorer les champs supplémentaires
     )
 
-    # ── Clé API Groq ──────────────────────────────────────────────────────────
+    # ── Clés API ──────────────────────────────────────────────────────────
     groq_api_key: str = ""
-
-    # ── Modèle Groq — défini dans votre .env ─────────────────────────────────
-    groq_model: str = "mixtral-8x7b-32768"
-
+    hf_token: str = "" 
+    
+    # ── Modèle Groq ──────────────────────────────────────────────────────────
+    groq_model: str = "llama-3.3-70b-versatile"
+    
     # ── Embedding local (aucune API requise) ──────────────────────────────────
     embedding_model: str = "all-MiniLM-L6-v2"
 
