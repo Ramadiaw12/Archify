@@ -1,19 +1,12 @@
 # backend/config.py
 """
-Configuration centralisée via pydantic-settings.
-Lit automatiquement les variables depuis .env ou l'environnement système.
-
-LLM utilisé : Groq (llama3 / mixtral) — PAS Anthropic, PAS xAI.
+Configuration de l'application — lue depuis le fichier .env
 """
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Toutes les variables de configuration de l'application.
-    Ordre de priorité : variables d'env > fichier .env > valeurs par défaut.
-    """
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -21,39 +14,31 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    # ── Clé API ───────────────────────────────────────────────────────────
-    # Groq — LLM principal ET pré-traitement
-    # Obtenir sur : https://console.groq.com/
+    # ── Clé API Groq ──────────────────────────────────────────────────────────
     groq_api_key: str = ""
 
-    # ── Modèles Groq ──────────────────────────────────────────────────────
-    # Modèle principal pour la génération du résumé (puissant)
-    groq_model_main: str = "llama3-70b-8192"
+    # ── Modèle Groq — défini dans votre .env ─────────────────────────────────
+    # Mettez le nom exact du modèle affiché dans votre console Groq
+    groq_model: str = "mixtral-8x7b-32768"
 
-    # Modèle rapide pour la pré-classification du document
-    groq_model_fast: str = "llama3-8b-8192"
-
-    # ── Embedding ─────────────────────────────────────────────────────────
-    # Modèle local — aucune API requise, tourne sur votre machine
+    # ── Embedding local (aucune API requise) ──────────────────────────────────
     embedding_model: str = "all-MiniLM-L6-v2"
 
-    # ── RAG ───────────────────────────────────────────────────────────────
-    chunk_size: int = 800        # Taille cible d'un chunk (en mots)
-    chunk_overlap: int = 100     # Chevauchement entre deux chunks consécutifs
-    top_k_chunks: int = 5        # Nombre de chunks retournés par le retriever
+    # ── RAG ───────────────────────────────────────────────────────────────────
+    chunk_size: int = 800
+    chunk_overlap: int = 100
+    top_k_chunks: int = 5
 
-    # ── Serveur ───────────────────────────────────────────────────────────
+    # ── Serveur ───────────────────────────────────────────────────────────────
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = False
 
-    # ── Upload & Sécurité ─────────────────────────────────────────────────
+    # ── Upload ────────────────────────────────────────────────────────────────
     max_file_size_mb: int = 20
     allowed_extensions: list[str] = [".pdf", ".docx", ".doc", ".txt", ".md", ".rtf"]
     upload_dir: str = "/tmp/docsummarizer"
-    # Supprimer le fichier immédiatement après traitement (confidentialité)
     delete_after_processing: bool = True
 
 
-# Singleton importé dans tous les modules de l'app
 settings = Settings()
