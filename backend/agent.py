@@ -1,36 +1,34 @@
 # backend/agent.py
 """
-Agent LangGraph — Orchestration du pipeline de résumé.
+Agent LangGraph — Pipeline de résumé de documents.
+
+LLM utilisé : Groq (LLaMA) UNIQUEMENT. Pas de Claude, pas d'Anthropic, pas de xAI.
 
 Graphe d'états :
   [START]
      │
      ▼
-  chunk_and_embed      ← Découpage + embeddings RAG
+  chunk_and_embed   ← Découpage RAG + embeddings
      │
      ▼
-  retrieve             ← Retrieval des passages pertinents
+  retrieve          ← Retrieval des passages pertinents (cosinus)
      │
      ▼
-  classify             ← Groq : type de doc, langue, complexité (optionnel)
+  classify          ← Groq llama3-8b : type de doc, domaine (rapide)
      │
      ▼
-  route                ← Choisit la stratégie de résumé
+  route             ← Heuristique : choisit la stratégie de résumé
      │
      ▼
-  summarize            ← Claude : génère le résumé JSON structuré
+  summarize         ← Groq llama3-70b : génère le résumé JSON
      │
      ▼
   [END]
-
-Chaque nœud est une fonction pure (AgentState → AgentState).
-LangGraph gère la transition entre les nœuds.
 """
 
 import json
 import re
-from dataclasses import dataclass, field
-from typing import Annotated, Any
+from typing import Any
 
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
@@ -39,38 +37,35 @@ from config import settings
 from rag import TextChunker, EmbeddingEngine, VectorStore, Chunk
 
 
-# ── État du graphe ────────────────────────────────────────────────────────────
-# TypedDict pour LangGraph (doit être sérialisable)
+# ── État du graphe LangGraph ─────────────────────────────────────────────────
 
 class AgentState(TypedDict):
-    # Entrées
-    raw_text: str
-    filename: str
-    style: str            # concis | detaille | bullet | executif | pedagogique
-    language: str         # fr | en | ar | es
-    detail_level: int     # 1–5
-    include: dict         # {keypoints, stats, quotes, entities, conclusion}
+    # ── Entrées ──────────────────────────────────────────────────────────────
+    raw_text:     str
+    filename:     str
+    style:        str    # concis | detaille | bullet | executif | pedagogique
+    language:     str    # fr | en | ar | es
+    detail_level: int    # 1–5
+    include:      dict   # {keypoints, stats, quotes, entities, conclusion}
 
-    # État interne du pipeline
-    chunks: list[dict]         # [{"text": ..., "index": ..., "embedding": ...}]
-    context: str               # Passages RAG assemblés pour le LLM
-    route: str                 # rapport_formel | pedagogique | scientifique | general | court
-    groq_meta: dict            # Métadonnées Groq (type, domaine, complexité)
+    # ── État interne pipeline ─────────────────────────────────────────────────
+    chunks:     list[dict]   # sérialisable : [{"text","index","embedding"}]
+    context:    str          # passages RAG assemblés pour le LLM
+    route:      str          # rapport_formel | pedagogique | scientifique | general | court
+    groq_meta:  dict         # résultat de la classification Groq rapide
 
-    # Sorties finales
-    summary: str
-    key_points: list[str]
+    # ── Sorties finales ───────────────────────────────────────────────────────
+    summary:       str
+    key_points:    list[str]
     document_type: str
-    sentiment: str
-    complexity: str
-    main_topics: list[str]
-    error: str
+    sentiment:     str
+    complexity:    str
+    main_topics:   list[str]
+    error:         str
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _state_defaults() -> AgentState:
-    """Valeurs par défaut de l'état (utilisé à l'initialisation)."""
+def _defaults() -> AgentState:
+    """Valeurs par défaut de l'état initial."""
     return AgentState(
         raw_text="", filename="", style="concis", language="fr",
         detail_level=3, include={},
@@ -81,91 +76,115 @@ def _state_defaults() -> AgentState:
     )
 
 
-def _parse_json_safe(text: str) -> dict:
-    """Tente de parser du JSON même si le modèle a ajouté du markdown."""
-    cleaned = re.sub(r"```json|```", "", text).strip()
+def _parse_json(text: str) -> dict:
+    """
+    Parse du JSON même si le modèle a ajouté du markdown ou du texte autour.
+    Tente plusieurs stratégies de nettoyage.
+    """
+    # Supprimer les blocs markdown ```json ... ```
+    cleaned = re.sub(r"```json\s*", "", text)
+    cleaned = re.sub(r"```\s*", "", cleaned).strip()
+
+    # Tentative 1 : JSON direct
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
-        # Chercher le premier bloc JSON dans le texte
-        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
-        if match:
-            try:
-                return json.loads(match.group())
-            except json.JSONDecodeError:
-                pass
+        pass
+
+    # Tentative 2 : extraire le premier bloc { ... }
+    match = re.search(r"\{[\s\S]*\}", cleaned)
+    if match:
+        try:
+            return json.loads(match.group())
+        except json.JSONDecodeError:
+            pass
+
     return {}
 
 
-# ── Nœuds du graphe ───────────────────────────────────────────────────────────
+# ── Nœud 1 : Chunking + Embedding ───────────────────────────────────────────
 
 def node_chunk_and_embed(state: AgentState) -> AgentState:
     """
-    Nœud 1 — RAG : Chunking + Embedding
-    Découpe le texte brut en chunks, génère leurs vecteurs d'embedding.
+    Découpe le texte en chunks puis génère leurs embeddings via RAG.
+    Les embeddings sont stockés comme listes de floats (sérialisables JSON).
     """
     chunker = TextChunker(
         chunk_size=settings.chunk_size,
         overlap=settings.chunk_overlap,
     )
-    engine = EmbeddingEngine(settings.embedding_model)
-
     raw_chunks = chunker.chunk(state["raw_text"])
-    if not raw_chunks:
-        return {**state, "error": "Texte vide après découpage."}
 
-    texts = [c for c in raw_chunks]
-    embeddings = engine.embed(texts)
+    if not raw_chunks:
+        return {**state, "error": "Le document est vide après extraction."}
+
+    # Générer les embeddings pour tous les chunks en une seule passe
+    engine = EmbeddingEngine(settings.embedding_model)
+    embeddings = engine.embed(raw_chunks)
 
     chunks_data = [
-        {"text": text, "index": i, "embedding": emb}
-        for i, (text, emb) in enumerate(zip(texts, embeddings))
+        {
+            "text":      text,
+            "index":     i,
+            "embedding": emb,
+        }
+        for i, (text, emb) in enumerate(zip(raw_chunks, embeddings))
     ]
 
     return {**state, "chunks": chunks_data}
 
 
+# ── Nœud 2 : Retrieval RAG ───────────────────────────────────────────────────
+
 def node_retrieve(state: AgentState) -> AgentState:
     """
-    Nœud 2 — RAG : Retrieval
-    Embed une requête automatique (début du doc) et récupère
-    les top-K chunks les plus proches par similarité cosinus.
+    Sélectionne les chunks les plus pertinents par similarité cosinus.
+
+    CORRECTION BUG dimension :
+    On utilise embed_with_query() qui encode chunks et requête
+    ENSEMBLE avec le même vocabulaire → vecteurs de même dimension.
     """
     if not state["chunks"]:
         return state
 
-    engine = EmbeddingEngine(settings.embedding_model)
-    store = VectorStore()
+    chunk_texts = [c["text"] for c in state["chunks"]]
 
-    # Reconstruire les objets Chunk depuis les dicts sérialisables
+    # Requête automatique = premiers 150 mots du document
+    auto_query = " ".join(state["raw_text"].split()[:150])
+
+    # ✅ Encoder chunks + requête ensemble (même espace vectoriel)
+    engine = EmbeddingEngine(settings.embedding_model)
+    chunk_embeddings, query_embedding = engine.embed_with_query(chunk_texts, auto_query)
+
+    # Construire le VectorStore avec les embeddings recalculés
+    store = VectorStore()
     chunk_objects = [
-        Chunk(text=c["text"], index=c["index"], embedding=c["embedding"])
-        for c in state["chunks"]
+        Chunk(text=c["text"], index=c["index"], embedding=emb)
+        for c, emb in zip(state["chunks"], chunk_embeddings)
     ]
     store.add_chunks(chunk_objects)
 
-    # Requête automatique = résumé heuristique des 120 premiers mots
-    auto_query = " ".join(state["raw_text"].split()[:120])
-    query_emb = engine.embed([auto_query])[0]
-
-    top_chunks = store.search(query_emb, top_k=settings.top_k_chunks)
+    # Récupérer les top-K chunks
+    top_chunks = store.search(query_embedding, top_k=settings.top_k_chunks)
 
     # Assembler le contexte pour le LLM
     context = "\n\n---\n\n".join(
-        f"[Extrait {c.index + 1}]\n{c.text}" for c in top_chunks
+        f"[Extrait {c.index + 1}]\n{c.text}"
+        for c in top_chunks
     )
 
     return {**state, "context": context}
 
 
+# ── Nœud 3 : Classification Groq (rapide) ────────────────────────────────────
+
 def node_classify(state: AgentState) -> AgentState:
     """
-    Nœud 3 — Groq (optionnel)
-    Classification rapide du document : type, domaine, complexité.
-    Si GROQ_API_KEY n'est pas définie, ce nœud est transparant.
+    Utilise Groq llama3-8b (rapide) pour classifier le document :
+    type, domaine, complexité estimée.
     """
     if not settings.groq_api_key:
-        return state  # Rien à faire, Groq désactivé
+        return state
 
     try:
         from groq import Groq
@@ -173,61 +192,65 @@ def node_classify(state: AgentState) -> AgentState:
 
         preview = " ".join(state["raw_text"].split()[:300])
         prompt = (
-            "Analyse ce début de document. Réponds UNIQUEMENT en JSON valide, "
-            "sans markdown :\n"
+            "Analyse ce début de document. "
+            "Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans texte autour :\n"
             '{"detected_language":"fr|en|ar|es|autre",'
             '"document_type":"rapport|lecon|article|livre|email|autre",'
-            '"domain":"informatique|médecine|droit|économie|éducation|autre",'
-            '"complexity":"simple|intermédiaire|complexe"}\n\n'
+            '"domain":"informatique|medecine|droit|economie|education|science|autre",'
+            '"complexity":"simple|intermediaire|complexe"}\n\n'
             f"Texte : {preview}"
         )
 
         resp = client.chat.completions.create(
-            model=settings.groq_model_fast,   # llama3-8b-8192 — rapide
+            model=settings.groq_model_fast,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=150,
             temperature=0.1,
         )
         raw = resp.choices[0].message.content or ""
-        meta = _parse_json_safe(raw)
+        meta = _parse_json(raw)
         return {**state, "groq_meta": meta}
 
     except Exception:
-        # Ne pas bloquer le pipeline si Groq échoue
+        # Ne jamais bloquer le pipeline si la classification échoue
         return state
 
 
+# ── Nœud 4 : Routage LangGraph ───────────────────────────────────────────────
+
 def node_route(state: AgentState) -> AgentState:
     """
-    Nœud 4 — Routage LangGraph
-    Analyse heuristique du contenu pour choisir la stratégie de résumé.
-    Prend en compte les métadonnées Groq si disponibles.
+    Choisit la stratégie de résumé selon le type de document.
+    Combine heuristiques textuelles + métadonnées Groq.
     """
     text_lower = state["raw_text"].lower()
     word_count = len(state["raw_text"].split())
     groq = state.get("groq_meta", {})
-
-    # Priorité aux métadonnées Groq
     doc_type = groq.get("document_type", "")
 
     if word_count < 300:
         route = "court"
     elif doc_type == "lecon" or any(
-        kw in text_lower
-        for kw in ["cours", "leçon", "chapitre", "exercice", "objectif pédagogique",
-                   "compétence", "apprentissage"]
+        kw in text_lower for kw in [
+            "cours", "leçon", "chapitre", "exercice",
+            "objectif pédagogique", "compétence", "apprentissage",
+            "définition", "exemple", "tp ", "td ",
+        ]
     ):
         route = "pedagogique"
     elif doc_type == "article" or any(
-        kw in text_lower
-        for kw in ["abstract", "résumé", "méthode", "résultats", "conclusion",
-                   "hypothèse", "étude", "analyse statistique"]
+        kw in text_lower for kw in [
+            "abstract", "introduction", "méthode", "résultats",
+            "conclusion", "hypothèse", "étude", "analyse statistique",
+            "références", "bibliographie",
+        ]
     ):
         route = "scientifique"
     elif doc_type == "rapport" or any(
-        kw in text_lower
-        for kw in ["rapport", "introduction", "executive summary", "recommandation",
-                   "conclusion", "annexe"]
+        kw in text_lower for kw in [
+            "rapport", "executive summary", "recommandation",
+            "synthèse", "bilan", "annexe", "tableau de bord",
+        ]
     ):
         route = "rapport_formel"
     else:
@@ -236,46 +259,60 @@ def node_route(state: AgentState) -> AgentState:
     return {**state, "route": route}
 
 
+# ── Nœud 5 : Résumé Groq (llama3-70b) ───────────────────────────────────────
+
 def node_summarize(state: AgentState) -> AgentState:
     """
-    Nœud 5 — Groq (LLaMA 70B)
-    Génère le résumé structuré en JSON à partir du contexte RAG.
-    Utilise groq_model_main (llama3-70b-8192) pour la meilleure qualité.
+    Génère le résumé structuré en JSON via Groq llama3-70b-8192.
+
+    LLM : Groq uniquement. Pas de Claude, pas d'Anthropic, pas de xAI.
     """
     if not settings.groq_api_key:
-        return {**state, "error": "GROQ_API_KEY non définie. Ajoutez-la dans votre fichier .env"}
+        return {
+            **state,
+            "error": (
+                "GROQ_API_KEY non définie. "
+                "Ajoutez-la dans votre fichier .env\n"
+                "Obtenir une clé gratuite : https://console.groq.com/"
+            ),
+        }
 
     from groq import Groq
 
-    # ── Construction des prompts ──────────────────────────────────────────────
+    # ── Préparation du prompt ─────────────────────────────────────────────────
 
-    lang_map = {"fr": "français", "en": "anglais", "ar": "arabe", "es": "espagnol"}
+    lang_map = {
+        "fr": "français",
+        "en": "anglais",
+        "ar": "arabe",
+        "es": "espagnol",
+    }
     lang_label = lang_map.get(state["language"], "français")
 
     style_map = {
         "concis":      "un résumé concis et percutant en 2-3 paragraphes",
         "detaille":    "un résumé détaillé et exhaustif en 4-6 paragraphes",
-        "bullet":      "une synthèse structurée en liste de points clés numérotés",
-        "executif":    "un rapport exécutif professionnel avec introduction, analyse et recommandations",
-        "pedagogique": "une fiche de révision claire et pédagogique, accessible à un étudiant",
+        "bullet":      "une synthèse en liste de points clés numérotés",
+        "executif":    "un rapport exécutif structuré (contexte, analyse, recommandations)",
+        "pedagogique": "une fiche de révision claire et accessible à un étudiant",
     }
     style_label = style_map.get(state["style"], style_map["concis"])
 
-    route_context = {
-        "court":          "Document court — aller à l'essentiel immédiatement.",
-        "pedagogique":    "Document pédagogique — mettre en valeur les concepts clés et la progression.",
-        "scientifique":   "Article scientifique — souligner méthodologie, résultats et limites.",
-        "rapport_formel": "Rapport formel — structurer avec contexte, analyse et recommandations.",
+    route_hints = {
+        "court":          "Document court — aller directement à l'essentiel.",
+        "pedagogique":    "Document pédagogique — mettre en valeur les concepts et la progression.",
+        "scientifique":   "Article scientifique — souligner méthode, résultats, limites.",
+        "rapport_formel": "Rapport formel — structurer contexte, analyse, recommandations.",
         "general":        "Document général — synthèse équilibrée.",
     }
-    route_hint = route_context.get(state["route"], route_context["general"])
+    route_hint = route_hints.get(state["route"], route_hints["general"])
 
     include = state.get("include", {})
     inclusions = []
     if include.get("keypoints", True):
         inclusions.append("3 à 7 points clés extraits du document")
     if include.get("stats"):
-        inclusions.append("les chiffres et statistiques importants mentionnés")
+        inclusions.append("les chiffres et statistiques importants")
     if include.get("quotes"):
         inclusions.append("1 à 3 citations directes marquantes (entre guillemets)")
     if include.get("entities"):
@@ -283,23 +320,20 @@ def node_summarize(state: AgentState) -> AgentState:
     if include.get("conclusion", True):
         inclusions.append("une conclusion synthétique en 1-2 phrases")
 
-    inclusions_text = "\n- ".join(inclusions) if inclusions else "résumé général"
+    inclusions_str = "\n- ".join(inclusions) if inclusions else "résumé général"
 
-    # Groq utilise le format messages (pas de paramètre system séparé)
-    # On intègre le system prompt dans le premier message user
-    full_prompt = f"""Tu es un agent expert en analyse documentaire et NLP.
-Tu utilises un pipeline RAG (Retrieval-Augmented Generation) avec LangGraph.
+    prompt = f"""Tu es un agent expert en analyse documentaire NLP utilisant RAG + LangGraph.
 
-RÈGLES STRICTES :
+RÈGLES ABSOLUES :
 1. Réponds UNIQUEMENT en {lang_label}.
-2. Réponds UNIQUEMENT avec un objet JSON valide. Aucun texte avant ou après. Pas de markdown.
-3. Ne jamais inventer d'informations absentes du document fourni.
-4. Niveau de détail demandé : {state['detail_level']}/5.
-5. Contexte de routage : {route_hint}
+2. Réponds UNIQUEMENT avec un objet JSON valide. Zéro texte avant ou après. Pas de markdown.
+3. Ne jamais inventer d'informations absentes du document.
+4. Niveau de détail : {state['detail_level']}/5.
+5. Stratégie : {route_hint}
 
-FORMAT JSON OBLIGATOIRE :
+FORMAT JSON (respecter exactement ces clés) :
 {{
-  "summary": "Résumé principal selon le style demandé",
+  "summary": "Résumé principal",
   "key_points": ["Point 1", "Point 2", "Point 3"],
   "document_type": "Type précis du document",
   "sentiment": "positif|neutre|négatif",
@@ -309,41 +343,39 @@ FORMAT JSON OBLIGATOIRE :
 
 ---
 
-TÂCHE : Génère {style_label} de ce document.
+TÂCHE : Génère {style_label}.
 
 ÉLÉMENTS À INCLURE :
-- {inclusions_text}
+- {inclusions_str}
 
-PASSAGES LES PLUS PERTINENTS (sélectionnés par RAG) :
+PASSAGES CLÉS SÉLECTIONNÉS PAR RAG :
 {state['context'][:4000]}
 
-DÉBUT DU DOCUMENT COMPLET :
+DÉBUT DU DOCUMENT :
 {state['raw_text'][:2500]}
 
-Génère maintenant l'objet JSON uniquement, sans aucun texte autour."""
+Génère l'objet JSON maintenant :"""
 
-    # ── Appel API Groq ────────────────────────────────────────────────────────
+    # ── Appel Groq ────────────────────────────────────────────────────────────
 
     try:
         client = Groq(api_key=settings.groq_api_key)
 
         response = client.chat.completions.create(
             model=settings.groq_model_main,   # llama3-70b-8192
-            messages=[
-                {"role": "user", "content": full_prompt}
-            ],
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=2048,
-            temperature=0.3,   # Légèrement créatif mais cohérent
+            temperature=0.3,
         )
 
-        raw = response.choices[0].message.content.strip()
-        parsed = _parse_json_safe(raw)
+        raw = response.choices[0].message.content or ""
+        parsed = _parse_json(raw)
 
         if not parsed:
             # Fallback : retourner le texte brut comme résumé
             return {
                 **state,
-                "summary":       raw,
+                "summary":       raw.strip(),
                 "key_points":    [],
                 "document_type": "Document",
                 "sentiment":     "neutre",
@@ -365,24 +397,18 @@ Génère maintenant l'objet JSON uniquement, sans aucun texte autour."""
         return {**state, "error": f"Erreur Groq : {e}"}
 
 
-# ── Construction du graphe LangGraph ──────────────────────────────────────────
+# ── Construction du graphe LangGraph ─────────────────────────────────────────
 
 def build_graph() -> Any:
-    """
-    Construit et compile le graphe LangGraph.
-
-    Retourne un CompiledGraph prêt à être invoqué avec .invoke(state).
-    """
+    """Construit et compile le graphe LangGraph."""
     builder = StateGraph(AgentState)
 
-    # Ajouter les nœuds
     builder.add_node("chunk_and_embed", node_chunk_and_embed)
     builder.add_node("retrieve",        node_retrieve)
     builder.add_node("classify",        node_classify)
     builder.add_node("route",           node_route)
     builder.add_node("summarize",       node_summarize)
 
-    # Définir les transitions (arêtes)
     builder.add_edge(START,             "chunk_and_embed")
     builder.add_edge("chunk_and_embed", "retrieve")
     builder.add_edge("retrieve",        "classify")
@@ -393,36 +419,36 @@ def build_graph() -> Any:
     return builder.compile()
 
 
-# Graphe compilé — singleton réutilisé pour chaque requête
+# Graphe compilé — réutilisé pour chaque requête
 graph = build_graph()
 
 
-# ── Fonction d'entrée publique ─────────────────────────────────────────────────
+# ── Fonction publique ─────────────────────────────────────────────────────────
 
 def run_agent(
-    raw_text: str,
-    filename: str,
-    style: str = "concis",
-    language: str = "fr",
+    raw_text:     str,
+    filename:     str,
+    style:        str = "concis",
+    language:     str = "fr",
     detail_level: int = 3,
-    include: dict | None = None,
+    include:      dict | None = None,
 ) -> AgentState:
     """
-    Lance l'agent LangGraph sur un texte extrait.
+    Lance le pipeline complet sur un texte extrait.
 
     Args:
         raw_text:     texte brut issu du DocumentParser
         filename:     nom original du fichier
-        style:        style du résumé (concis/detaille/bullet/executif/pedagogique)
-        language:     langue de sortie (fr/en/ar/es)
+        style:        style du résumé
+        language:     langue de sortie
         detail_level: niveau de détail 1–5
-        include:      dict {keypoints, stats, quotes, entities, conclusion}
+        include:      options d'inclusion {keypoints, stats, quotes, entities, conclusion}
 
     Returns:
-        AgentState final après exécution complète du graphe
+        AgentState final avec summary, key_points, etc.
     """
-    initial_state: AgentState = {
-        **_state_defaults(),
+    initial: AgentState = {
+        **_defaults(),
         "raw_text":     raw_text,
         "filename":     filename,
         "style":        style,
@@ -431,5 +457,4 @@ def run_agent(
         "include":      include or {},
     }
 
-    final_state: AgentState = graph.invoke(initial_state)
-    return final_state
+    return graph.invoke(initial)

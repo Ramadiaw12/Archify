@@ -43,7 +43,7 @@ app = FastAPI(
     title="DocSummarizer API",
     description=(
         "Agent NLP de résumé de documents.\n"
-        "Pipeline : RAG → LangGraph → Claude (Anthropic) + Groq (optionnel)"
+        "Pipeline : RAG → LangGraph → Groq (LLaMA)"
     ),
     version="1.0.0",
     lifespan=lifespan,
@@ -160,7 +160,7 @@ async def summarize(
     1. Validation du fichier (extension, taille)
     2. Sauvegarde temporaire avec UUID (sécurité)
     3. Extraction du texte (DocumentParser)
-    4. Agent LangGraph : chunking → embedding → retrieval → classification Groq → routage → résumé Claude
+        4. Agent LangGraph : chunking → embedding → retrieval → classification Groq → routage → résumé Groq
     5. Suppression du fichier temporaire
     6. Retour JSON structuré
     """
