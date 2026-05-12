@@ -1,33 +1,38 @@
 <div align="center">
 
-<!-- ANIMATED BANNER -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=DocSummarizer&fontSize=60&fontColor=fff&animation=twinkling&fontAlignY=35&desc=Intelligent%20Document%20Summarization%20Agent&descAlignY=55&descSize=18" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=DocSummarizer&fontSize=64&fontColor=fff&animation=twinkling&fontAlignY=38&desc=Production-Grade%20NLP%20Document%20Summarization%20Agent&descAlignY=58&descSize=18" width="100%"/>
 
-<!-- BADGES -->
+<br/>
+
 <p>
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
-  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
-  <img alt="LangGraph" src="https://img.shields.io/badge/LangGraph-0.2-FF6B35?style=for-the-badge&logo=langchain&logoColor=white"/>
-  <img alt="Groq" src="https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge&logo=groq&logoColor=white"/>
-  <img alt="RAG" src="https://img.shields.io/badge/RAG-Enabled-8A2BE2?style=for-the-badge"/>
-  <img alt="uv" src="https://img.shields.io/badge/uv-Package%20Manager-DE5FE9?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
+  <img src="https://img.shields.io/badge/LangGraph-1.0+-FF6B35?style=for-the-badge&logo=langchain&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge&logo=groq&logoColor=white"/>
+  <img src="https://img.shields.io/badge/RAG-ChromaDB-8A2BE2?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-Auth-336791?style=for-the-badge&logo=postgresql&logoColor=white"/>
+  <img src="https://img.shields.io/badge/uv-Package%20Manager-DE5FE9?style=for-the-badge"/>
 </p>
 
 <p>
-  <img alt="License" src="https://img.shields.io/badge/License-MIT-green?style=flat-square"/>
-  <img alt="Status" src="https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square"/>
-  <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-Welcome-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=flat-square"/>
+  <img src="https://img.shields.io/badge/PRs-Welcome-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Auth-Google%20OAuth%20%2B%20JWT-orange?style=flat-square"/>
 </p>
 
 <br/>
 
-> **DocSummarizer** is a production-grade NLP agent that transforms any document —  
-> PDF, Word, lesson, report — into a structured, precise, multilingual summary.  
-> Powered by **RAG + LangGraph + Groq** with a clean REST API and web interface.
+> **DocSummarizer** is a production-grade NLP agent that transforms any document —
+> PDF, Word, lesson, report — into a structured, precise, multilingual summary.
+> Powered by **RAG + LangGraph + Groq** with a clean REST API, web interface,
+> and secure authentication (Google OAuth + JWT + PostgreSQL).
 
 <br/>
 
-[**Live Demo**](#-quick-start) · [**Architecture**](#-architecture) · [**API Reference**](#-api-reference) · [**Contributing**](#-contributing)
+[**🚀 Quick Start**](#-quick-start) · [**🏗 Architecture**](#-architecture) · [**🔄 Pipeline**](#-pipeline-workflow) · [**📡 API**](#-api-reference) · [**🔐 Auth**](#-authentication)
+
+<br/>
 
 </div>
 
@@ -41,11 +46,12 @@
 - [📁 Project Structure](#-project-structure)
 - [⚡ Quick Start](#-quick-start)
 - [⚙️ Configuration](#️-configuration)
+- [🔐 Authentication](#-authentication)
 - [📡 API Reference](#-api-reference)
 - [🧩 Core Components](#-core-components)
 - [🔒 Security](#-security)
-- [🛠 Development](#-development)
 - [🗺 Roadmap](#-roadmap)
+- [👩‍💻 Author](#-author)
 
 ---
 
@@ -55,32 +61,35 @@
 <tr>
 <td width="50%">
 
-### 🤖 AI-Powered
-- **RAG Pipeline** — semantic chunking + cosine similarity retrieval
-- **LangGraph Orchestration** — stateful multi-node agent graph
-- **ChatGroq LLM** — fast inference on `llama-3.3-70b-versatile`
-- **Auto-routing** — detects document type and adapts the summarization strategy
+### 🤖 AI-Powered Pipeline
+- **RAG** — ChromaDB + SentenceTransformers (local)
+- **LangGraph** — Stateful 5-node agent graph
+- **Groq LLM** — `llama-3.3-70b-versatile`, fast inference
+- **Auto-routing** — Detects document type, adapts strategy
+- **Multilingual** — FR · EN · AR · ES output
 
 </td>
 <td width="50%">
 
-### 📄 Document Support
-- ✅ PDF (via `pdfplumber`)
-- ✅ Word `.docx` / `.doc`
-- ✅ Plain text `.txt` / `.md`
-- ✅ Rich Text `.rtf`
-- 🔒 Files deleted immediately after processing
+### 🔐 Secure Authentication
+- **Google OAuth 2.0** — One-click sign in
+- **Email / Password** — bcrypt hashing (rounds=12)
+- **JWT tokens** — Access (15min) + Refresh (7 days)
+- **Token rotation** — Automatic refresh on expiry
+- **Brute-force protection** — Rate limiting + lockout
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-### 🌐 Multilingual Output
-- 🇫🇷 Français
-- 🇬🇧 English
-- 🇲🇦 Arabe
-- 🇪🇸 Español
+### 📄 Document Support
+- ✅ PDF (pdfplumber)
+- ✅ Word `.docx` / `.doc`
+- ✅ Markdown `.md`
+- ✅ Plain text `.txt`
+- ✅ Rich Text `.rtf`
+- 🔒 Deleted immediately after processing
 
 </td>
 <td width="50%">
@@ -88,11 +97,11 @@
 ### 🎛 Summary Styles
 | Style | Description |
 |-------|-------------|
-| `concis` | 2–3 paragraphs, straight to the point |
-| `detaille` | 4–6 paragraphs, exhaustive |
-| `bullet` | Numbered key points list |
-| `executif` | Executive report format |
-| `pedagogique` | Student-friendly revision sheet |
+| `concis` | 2–3 paragraphs |
+| `detaille` | 4–6 paragraphs |
+| `bullet` | Numbered key points |
+| `executif` | Executive report |
+| `pedagogique` | Student revision sheet |
 
 </td>
 </tr>
@@ -106,57 +115,67 @@
 graph TB
     subgraph CLIENT["🌐 Client Layer"]
         UI[Web Interface<br/>HTML · CSS · JS]
-        API_CLIENT[REST Client<br/>curl · httpx · fetch]
+        AUTH_UI[Auth Modal<br/>Login · Register · Google]
     end
 
     subgraph SERVER["⚡ FastAPI Server"]
-        EP[POST /api/summarize]
-        HEALTH[GET /api/health]
-        STATIC[Static File Server<br/>index.html · style.css · app.js]
+        EP_SUMMARIZE[POST /api/summarize]
+        EP_AUTH[/auth/* endpoints]
+        EP_HISTORY[GET /api/summaries]
+        STATIC[Static Files<br/>index.html · style.css · app.js]
     end
 
-    subgraph PARSER["📄 Document Parser"]
-        PDF[pdfplumber<br/>PDF]
-        DOCX[python-docx<br/>DOCX]
-        TXT[Built-in<br/>TXT · MD · RTF]
+    subgraph AUTH["🔐 Auth Layer"]
+        GOOGLE[Google OAuth 2.0]
+        JWT[JWT Tokens<br/>Access + Refresh]
+        BCRYPT[bcrypt Password<br/>rounds=12]
+        RATE[Rate Limiter<br/>Sliding Window]
     end
 
     subgraph AGENT["🧠 LangGraph Agent"]
-        direction TB
-        N1[chunk_and_embed<br/>TextChunker + EmbeddingEngine]
-        N2[retrieve<br/>VectorStore · Cosine Similarity]
-        N3[classify<br/>ChatGroq · Document Type]
-        N4[route<br/>Strategy Selection]
-        N5[summarize<br/>ChatGroq · JSON Output]
+        N1[chunk_and_embed]
+        N2[retrieve]
+        N3[classify]
+        N4[route]
+        N5[summarize]
         N1 --> N2 --> N3 --> N4 --> N5
     end
 
     subgraph RAG["🔍 RAG Components"]
-        CHUNK[TextChunker<br/>800 words · 100 overlap]
-        EMBED[EmbeddingEngine<br/>all-MiniLM-L6-v2<br/>SentenceTransformers]
-        STORE[VectorStore<br/>In-Memory · L2 Normalized]
+        CHROMA[ChromaDB<br/>Vector Store]
+        ST[SentenceTransformers<br/>all-MiniLM-L6-v2]
+        CHUNKER[TextChunker<br/>800w + 100w overlap]
     end
 
-    subgraph LLM["⚡ Groq Inference"]
-        GROQ[ChatGroq<br/>llama-3.3-70b-versatile<br/>temperature=0]
+    subgraph DB["🗄️ PostgreSQL"]
+        USERS[users table]
+        SESSIONS[sessions table]
+        SUMMARIES[summaries table]
     end
 
-    UI --> EP
-    API_CLIENT --> EP
-    EP --> PARSER
-    PARSER --> AGENT
+    subgraph LLM["⚡ Groq"]
+        GROQ[llama-3.3-70b-versatile<br/>temperature=0]
+    end
+
+    UI --> EP_SUMMARIZE
+    AUTH_UI --> EP_AUTH
+    EP_AUTH --> AUTH
+    AUTH --> DB
+    EP_SUMMARIZE --> AGENT
     N1 --> RAG
-    N2 --> RAG
+    N2 --> CHROMA
     N5 --> LLM
     N3 --> LLM
-    AGENT --> EP
+    EP_SUMMARIZE --> DB
+    EP_HISTORY --> DB
 
-    style CLIENT fill:#1a1a2e,stroke:#e94560,color:#fff
-    style SERVER fill:#16213e,stroke:#0f3460,color:#fff
-    style AGENT fill:#0f3460,stroke:#533483,color:#fff
-    style RAG fill:#533483,stroke:#e94560,color:#fff
-    style LLM fill:#e94560,stroke:#533483,color:#fff
-    style PARSER fill:#1a1a2e,stroke:#533483,color:#fff
+    style CLIENT fill:#3D1A14,stroke:#A63226,color:#F5EFE6
+    style SERVER fill:#5C2A1F,stroke:#A63226,color:#F5EFE6
+    style AUTH fill:#7A3B2E,stroke:#D4B896,color:#F5EFE6
+    style AGENT fill:#A63226,stroke:#D4B896,color:#F5EFE6
+    style RAG fill:#3D1A14,stroke:#D4B896,color:#F5EFE6
+    style DB fill:#5C2A1F,stroke:#D4B896,color:#F5EFE6
+    style LLM fill:#7A3B2E,stroke:#A63226,color:#F5EFE6
 ```
 
 ---
@@ -169,53 +188,57 @@ sequenceDiagram
     actor User
     participant FE as 🌐 Frontend
     participant API as ⚡ FastAPI
+    participant AUTH as 🔐 Auth
     participant DP as 📄 DocumentParser
-    participant RAG as 🔍 RAG Engine
+    participant RAG as 🔍 ChromaDB
     participant LG as 🧠 LangGraph
-    participant GROQ as ⚡ ChatGroq
+    participant GROQ as ⚡ Groq LLM
+    participant DB as 🗄️ PostgreSQL
 
     User->>FE: Upload document + options
-    FE->>API: POST /api/summarize (multipart/form-data)
+    FE->>API: POST /api/summarize + Bearer token
 
-    API->>API: Validate extension & file size
-    API->>API: Save to /tmp with UUID (security)
+    API->>AUTH: Validate JWT (optional)
+    AUTH-->>API: UserPublic | None
+
+    API->>API: Validate file (ext, size)
+    API->>API: Save to /tmp with UUID
 
     API->>DP: parse(file_path)
-    DP->>DP: Detect format (PDF/DOCX/TXT/RTF)
-    DP->>DP: Extract & clean raw text
-    DP-->>API: ParsedDocument {text, word_count, pages}
+    DP->>DP: Detect format & extract text
+    DP-->>API: ParsedDocument {text, pages, words}
 
-    API->>LG: run_agent(raw_text, options)
+    API->>LG: run_agent(text, options)
 
     Note over LG: Node 1 — chunk_and_embed
     LG->>RAG: TextChunker.chunk(text)
     RAG-->>LG: chunks[] (800w + 100w overlap)
-    LG->>RAG: EmbeddingEngine.embed(chunks)
-    RAG-->>LG: embeddings[] (384-dim vectors)
 
     Note over LG: Node 2 — retrieve
-    LG->>RAG: embed_with_query(chunks, auto_query)
-    RAG-->>LG: chunk_embeddings, query_embedding
-    LG->>RAG: VectorStore.search(query_emb, top_k=5)
-    RAG-->>LG: top_chunks[] (cosine similarity)
-    LG->>LG: Build RAG context string
+    LG->>RAG: ChromaDB.from_texts(chunks)
+    RAG-->>LG: top-5 relevant chunks
 
     Note over LG: Node 3 — classify
-    LG->>GROQ: ChatGroq.invoke([classify_prompt])
-    GROQ-->>LG: {document_type, domain, complexity}
+    LG->>GROQ: Classify document type
+    GROQ-->>LG: {type, domain, complexity}
 
     Note over LG: Node 4 — route
-    LG->>LG: Heuristic routing
-    LG-->>LG: route ∈ {court|pedagogique|scientifique|rapport_formel|general}
+    LG->>LG: Select summarization strategy
 
     Note over LG: Node 5 — summarize
-    LG->>GROQ: ChatGroq.invoke([system_msg, user_msg + RAG context])
-    GROQ-->>LG: JSON {summary, key_points, sentiment, ...}
+    LG->>GROQ: Generate structured JSON summary
+    GROQ-->>LG: {summary, key_points, topics...}
 
     LG-->>API: AgentState (final)
-    API->>API: Delete tmp file (security)
+    API->>API: Delete tmp file
+
+    opt User is authenticated
+        API->>DB: INSERT INTO summaries
+        DB-->>API: summary_id
+    end
+
     API-->>FE: JSON Response
-    FE-->>User: Render summary + stats
+    FE-->>User: Render summary + stats + history
 ```
 
 ---
@@ -224,39 +247,31 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> chunk_and_embed : raw_text input
+    [*] --> chunk_and_embed : raw_text
 
-    chunk_and_embed --> retrieve : chunks[] + embeddings[]
+    chunk_and_embed --> retrieve : chunks[]
     chunk_and_embed --> ERROR : empty document
 
-    retrieve --> classify : context (top-K passages)
+    retrieve --> classify : RAG context (top-5)
 
     classify --> route : groq_meta {type, domain}
 
-    route --> summarize : route ∈ {court, pedagogique,\nscientifique, rapport_formel, general}
-
-    summarize --> [*] : AgentState\n{summary, key_points,\nsentiment, complexity}
-    summarize --> ERROR : Groq API failure
-
-    ERROR --> [*] : error message
-
-    note right of chunk_and_embed
-        TextChunker (800w + 100w overlap)
-        EmbeddingEngine (all-MiniLM-L6-v2)
+    route --> summarize : strategy selected
+    note right of route
+        court | pedagogique
+        scientifique | rapport_formel
+        general
     end note
 
-    note right of retrieve
-        embed_with_query() → shared vocab
-        VectorStore → cosine similarity
-        top_k = 5 chunks
-    end note
-
+    summarize --> [*] : AgentState
     note right of summarize
-        ChatGroq(llama-3.3-70b-versatile)
-        temperature=0
-        SystemMessage + HumanMessage
-        JSON output parsing
+        summary · key_points
+        sentiment · complexity
+        main_topics
     end note
+
+    summarize --> ERROR : Groq failure
+    ERROR --> [*] : error message
 ```
 
 ---
@@ -264,42 +279,37 @@ stateDiagram-v2
 ## 📁 Project Structure
 
 ```
-docsummarizer/
+DocSummarizer/
 │
-├── 📄 pyproject.toml          # uv dependencies & build config
-├── 🔐 .env.example            # Environment variables template
+├── 📄 pyproject.toml              # uv dependencies
+├── 🔐 .env.example                # Environment variables template
 ├── 📖 README.md
 │
 ├── backend/
-│   ├── 🔧 config.py           # Pydantic-settings — auto .env discovery
-│   ├── 📄 document_parser.py  # PDF · DOCX · TXT · MD · RTF extraction
-│   ├── 🔍 rag.py              # TextChunker · EmbeddingEngine · VectorStore
-│   ├── 🧠 agent.py            # LangGraph graph — 5 nodes pipeline
-│   └── ⚡ main.py             # FastAPI server — REST endpoints
+│   ├── ⚙️  config.py              # Centralized settings (pydantic-settings)
+│   ├── 📄 document_parser.py      # PDF · DOCX · TXT · MD · RTF extraction
+│   ├── 🔍 rag.py                  # TextChunker · ChromaDB · EmbeddingEngine
+│   ├── 🧠 agent.py                # LangGraph 5-node pipeline
+│   ├── ⚡ main.py                  # FastAPI server + all endpoints
+│   │
+│   ├── auth/
+│   │   ├── 🔑 security.py         # bcrypt + JWT generation/validation
+│   │   ├── 🌐 google.py           # Google OAuth 2.0 flow
+│   │   ├── 🔧 service.py          # Auth business logic
+│   │   └── 🛣️  router.py          # Auth endpoints
+│   │
+│   ├── db/
+│   │   ├── 🗄️  database.py        # SQLAlchemy async engine + sessions
+│   │   └── 📋 models.py           # User · Session · Summary ORM models
+│   │
+│   └── middleware/
+│       ├── 🔒 auth_dep.py         # FastAPI auth dependencies
+│       └── 🛡️  rate_limit.py      # Sliding window rate limiter
 │
 └── frontend/
-    ├── 🌐 index.html          # Semantic HTML5 + ARIA accessibility
-    ├── 🎨 style.css           # Warm palette — CSS variables
-    └── ⚙️  app.js              # Drag & drop · API calls · Results rendering
-```
-
-**Dependency graph between modules:**
-
-```mermaid
-graph LR
-    main.py --> config.py
-    main.py --> document_parser.py
-    main.py --> agent.py
-    agent.py --> config.py
-    agent.py --> rag.py
-    rag.py --> config.py
-    document_parser.py:::standalone
-
-    classDef standalone fill:#2d4a22,stroke:#5a9e3a,color:#fff
-    style main.py fill:#1a3a5c,stroke:#2e86de,color:#fff
-    style agent.py fill:#4a1a5c,stroke:#9b59b6,color:#fff
-    style rag.py fill:#5c3a1a,stroke:#e67e22,color:#fff
-    style config.py fill:#3a1a1a,stroke:#e74c3c,color:#fff
+    ├── 🌐 index.html              # Semantic HTML5 + auth modal
+    ├── 🎨 style.css               # Beige · Rouge · Blanc palette
+    └── ⚙️  app.js                  # Auth · Upload · Pipeline · Results
 ```
 
 ---
@@ -310,72 +320,126 @@ graph LR
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Python | ≥ 3.11 | [python.org](https://python.org) |
+| Python | ≥ 3.12 | [python.org](https://python.org) |
 | uv | latest | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| PostgreSQL | ≥ 14 | `sudo apt install postgresql` |
 | Groq API Key | — | [console.groq.com](https://console.groq.com) (free) |
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/yourname/docsummarizer.git
-cd docsummarizer
+# 1. Clone
+git clone https://github.com/Ramadiaw12/Archify.git
+cd Archify
 
-# 2. Install dependencies with uv
+# 2. Install dependencies
 uv sync
 
-# 3. Configure environment
+# 3. Setup PostgreSQL
+sudo -u postgres psql -c "CREATE USER docuser WITH PASSWORD 'yourpassword';"
+sudo -u postgres psql -c "CREATE DATABASE docsummarizer OWNER docuser;"
+
+# 4. Configure environment
 cp .env.example backend/.env
 nano backend/.env
 ```
 
 **`backend/.env`:**
 ```env
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxx
+# Groq (required)
+GROQ_API_KEY=gsk_xxxxxxxxxxxx
 GROQ_MODEL=llama-3.3-70b-versatile
+
+# PostgreSQL
+DATABASE_URL=postgresql+asyncpg://docuser:yourpassword@localhost:5432/docsummarizer
+
+# JWT — generate with: openssl rand -hex 32
+JWT_SECRET_KEY=your-secret-key-here
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxx
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 ```
 
 ```bash
-# 4. Start the server
+# 5. Start
 cd backend
 uv run python main.py
 ```
 
 ```
-[Config] .env trouvé   : /path/to/backend/.env
-[Config] GROQ_API_KEY  : ✅ définie
-[Config] GROQ_MODEL    : llama-3.3-70b-versatile
+[Config] GROQ        : ✅
+[Config] DATABASE    : postgresql+asyncpg://...
+[Config] JWT         : ✅
+[Config] GOOGLE_AUTH : ✅
 ✅  DocSummarizer démarré → http://localhost:8000
+🤖  Groq : llama-3.3-70b-versatile
+🔐  Google OAuth : ✅
 ```
 
-Open **http://localhost:8000** in your browser. 🚀
+Open **http://localhost:8000** 🚀
 
 ---
 
 ## ⚙️ Configuration
 
-All settings are defined in `config.py` and overridable via `.env`:
-
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GROQ_API_KEY` | *(required)* | Groq API key |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | ChatGroq model name |
-| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Local SentenceTransformer model |
-| `CHUNK_SIZE` | `800` | Target chunk size in words |
-| `CHUNK_OVERLAP` | `100` | Overlap between consecutive chunks |
-| `TOP_K_CHUNKS` | `5` | Number of chunks retrieved by RAG |
-| `MAX_FILE_SIZE_MB` | `20` | Maximum upload size |
-| `PORT` | `8000` | Server port |
-| `DEBUG` | `false` | Enable hot reload |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` | LLM model |
+| `DATABASE_URL` | *(required)* | PostgreSQL async URL |
+| `JWT_SECRET_KEY` | *(required)* | JWT signing secret |
+| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Local embedding model |
+| `CHUNK_SIZE` | `800` | RAG chunk size (words) |
+| `CHUNK_OVERLAP` | `100` | Overlap between chunks |
+| `TOP_K_CHUNKS` | `5` | Retrieved chunks per query |
+| `MAX_FILE_SIZE_MB` | `20` | Max upload size |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` | JWT access token TTL |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | JWT refresh token TTL |
 
-**Available Groq models:**
+---
 
-```bash
-# Fast & efficient
-GROQ_MODEL=llama-3.3-70b-versatile   # Best quality
-GROQ_MODEL=mixtral-8x7b-32768        # Large context
-GROQ_MODEL=gemma2-9b-it              # Lightweight
+## 🔐 Authentication
+
+### Flow Diagram
+
+```mermaid
+graph LR
+    A[User] -->|Email + Password| B[POST /auth/register]
+    A -->|Email + Password| C[POST /auth/login]
+    A -->|Click Google| D[GET /auth/google/login]
+
+    B --> E[bcrypt hash]
+    C --> F[bcrypt verify]
+    D --> G[Google OAuth 2.0]
+
+    E --> H[Create JWT tokens]
+    F --> H
+    G --> I[Verify ID token]
+    I --> H
+
+    H --> J[access_token 15min]
+    H --> K[refresh_token 7 days]
+
+    J --> L[Protected endpoints]
+    K --> M[POST /auth/refresh]
+    M --> H
 ```
+
+### Security Measures
+
+| Feature | Implementation |
+|---------|----------------|
+| Password hashing | bcrypt (rounds=12) |
+| Token type | JWT HS256 |
+| Access token TTL | 15 minutes |
+| Refresh token TTL | 7 days (stored in DB) |
+| Token rotation | Automatic on refresh |
+| Brute-force protection | 5 attempts → 15min lockout |
+| Rate limiting | 10 login/15min · 5 register/h |
+| File security | UUID naming + immediate deletion |
+| Anti-enumeration | Same error for wrong email/password |
 
 ---
 
@@ -383,44 +447,31 @@ GROQ_MODEL=gemma2-9b-it              # Lightweight
 
 ### `POST /api/summarize`
 
-Processes a document and returns a structured summary.
-
-**Request** — `multipart/form-data`:
-
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `file` | File | *required* | Document to analyze |
-| `style` | string | `concis` | `concis` · `detaille` · `bullet` · `executif` · `pedagogique` |
-| `lang` | string | `fr` | `fr` · `en` · `ar` · `es` |
-| `detail_level` | int (1–5) | `3` | Verbosity level |
+| `style` | string | `concis` | Summary style |
+| `lang` | string | `fr` | Output language (fr/en/ar/es) |
+| `detail_level` | int 1–5 | `3` | Verbosity level |
 | `include_keypoints` | bool | `true` | Extract key points |
-| `include_stats` | bool | `true` | Include figures & stats |
-| `include_quotes` | bool | `false` | Include direct quotes |
-| `include_entities` | bool | `false` | Extract named entities |
-| `include_conclusion` | bool | `true` | Add closing summary |
+| `include_stats` | bool | `true` | Include figures |
+| `include_conclusion` | bool | `true` | Add conclusion |
 
-**Response** — `application/json`:
-
+**Response:**
 ```json
 {
   "success": true,
-  "filename": "rapport_q3_2024.pdf",
-  "file_type": "PDF",
-  "summary": "Ce rapport présente les résultats financiers du troisième trimestre...",
-  "key_points": [
-    "Croissance du chiffre d'affaires de 18% en glissement annuel",
-    "Expansion sur 3 nouveaux marchés européens",
-    "Réduction des coûts opérationnels de 12%"
-  ],
+  "summary_id": "uuid-if-authenticated",
+  "summary": "Ce rapport présente...",
+  "key_points": ["Point 1", "Point 2"],
   "document_type": "Rapport financier",
   "sentiment": "positif",
   "complexity": "intermédiaire",
-  "main_topics": ["Finance", "Expansion", "Performance"],
+  "main_topics": ["Finance", "Stratégie"],
   "stats": {
     "word_count_original": 4820,
     "word_count_summary": 210,
     "compression_ratio": 95.6,
-    "page_count": 14,
     "chunk_count": 7,
     "read_time_min": 24
   },
@@ -433,30 +484,19 @@ Processes a document and returns a structured summary.
 }
 ```
 
-### `GET /api/health`
+### Auth Endpoints
 
-```json
-{
-  "status": "ok",
-  "groq_ready": true,
-  "groq_model": "llama-3.3-70b-versatile",
-  "embedding": "all-MiniLM-L6-v2"
-}
-```
-
-**cURL examples:**
-
-```bash
-# Summarize a PDF
-curl -X POST http://localhost:8000/api/summarize \
-  -F "file=@rapport.pdf" \
-  -F "style=executif" \
-  -F "lang=fr" \
-  -F "detail_level=4" | jq
-
-# Health check
-curl http://localhost:8000/api/health | jq
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/register` | Email/password registration |
+| `POST` | `/auth/login` | Email/password login |
+| `POST` | `/auth/logout` | Revoke refresh token |
+| `POST` | `/auth/refresh` | Rotate tokens |
+| `GET` | `/auth/me` | Get current user profile |
+| `GET` | `/auth/google/login` | Redirect to Google OAuth |
+| `GET` | `/auth/google/callback` | Google OAuth callback |
+| `GET` | `/api/summaries` | Get user's summary history |
+| `GET` | `/api/health` | Server health check |
 
 ---
 
@@ -465,60 +505,43 @@ curl http://localhost:8000/api/health | jq
 ### RAG Pipeline — `rag.py`
 
 ```python
-# Three-stage retrieval pipeline
-
-# Stage 1 — Chunking with overlap
-chunker = TextChunker(chunk_size=800, overlap=100)
-chunks = chunker.chunk(raw_text)  # preserves paragraph coherence
-
-# Stage 2 — Embedding (shared vocabulary — fixes dimension mismatch bug)
-engine = EmbeddingEngine("all-MiniLM-L6-v2")
-chunk_embeddings, query_embedding = engine.embed_with_query(chunks, query)
-# ↑ Both encoded together → guaranteed same vector dimension
-
-# Stage 3 — Cosine similarity search
-store = VectorStore()
-store.add_chunks([Chunk(text=t, index=i, embedding=e) for ...])
-top_chunks = store.search(query_embedding, top_k=5)
+# ChromaDB for vector storage — no dimension mismatch
+vectorstore = Chroma.from_texts(
+    texts=chunks,
+    embedding=SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2"),
+    client=chromadb.EphemeralClient(),
+)
+results = vectorstore.similarity_search(auto_query, k=5)
 ```
-
-> **Key design decision:** `embed_with_query()` encodes chunks and query **in a single batch** using a shared vocabulary. This prevents the `shapes (83,) and (362,) not aligned` dimension mismatch that occurs when using separate TF-IDF calls.
 
 ### LangGraph Agent — `agent.py`
 
 ```python
-# Graph definition
 builder = StateGraph(AgentState)
-
-builder.add_node("chunk_and_embed", node_chunk_and_embed)  # RAG chunking
-builder.add_node("retrieve",        node_retrieve)          # Top-K retrieval
-builder.add_node("classify",        node_classify)          # Doc classification
-builder.add_node("route",           node_route)             # Strategy routing
-builder.add_node("summarize",       node_summarize)         # LLM generation
-
-builder.add_edge(START,             "chunk_and_embed")
-builder.add_edge("chunk_and_embed", "retrieve")
-builder.add_edge("retrieve",        "classify")
-builder.add_edge("classify",        "route")
-builder.add_edge("route",           "summarize")
-builder.add_edge("summarize",       END)
-
+builder.add_node("chunk_and_embed", node_chunk_and_embed)
+builder.add_node("retrieve",        node_retrieve)       # ChromaDB
+builder.add_node("classify",        node_classify)       # Groq fast
+builder.add_node("route",           node_route)          # Heuristic
+builder.add_node("summarize",       node_summarize)      # Groq main
+builder.add_edge(START, "chunk_and_embed")
+# ... → retrieve → classify → route → summarize → END
 graph = builder.compile()
 ```
 
-### ChatGroq Integration — `agent.py`
+### Groq Integration — `agent.py`
 
 ```python
-llm = ChatGroq(
-    model=settings.groq_model,
-    api_key=settings.groq_api_key,
+# Native Groq client — no LangChain dependency
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+response = client.chat.completions.create(
+    model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+    messages=[
+        {"role": "system", "content": system_prompt},
+        {"role": "user",   "content": user_prompt_with_rag_context},
+    ],
     temperature=0,
+    max_tokens=2048,
 )
-
-response = llm.invoke([
-    SystemMessage(content=system_prompt),
-    HumanMessage(content=user_prompt_with_rag_context),
-])
 ```
 
 ---
@@ -527,102 +550,34 @@ response = llm.invoke([
 
 | Concern | Implementation |
 |---------|----------------|
-| **File storage** | UUID-named temp files, deleted immediately after processing |
-| **Path traversal** | Extension whitelist + UUID filenames — no user input in paths |
-| **File size** | Configurable limit (default 20 MB) enforced before disk write |
-| **API keys** | Loaded from `.env`, never logged or exposed in responses |
-| **CORS** | Configurable — restrict `allow_origins` in production |
-
-```python
-# Security flow in main.py
-tmp_path = os.path.join(settings.upload_dir, f"{uuid.uuid4().hex}{ext}")
-try:
-    # ... process ...
-finally:
-    if os.path.exists(tmp_path):
-        os.remove(tmp_path)   # Always deleted, even on error
-```
-
----
-
-## 🛠 Development
-
-### Run tests
-
-```bash
-uv run pytest tests/ -v
-```
-
-### Lint & format
-
-```bash
-uv run ruff check backend/
-uv run ruff format backend/
-```
-
-### Run with hot reload
-
-```bash
-cd backend
-DEBUG=true uv run python main.py
-```
-
-### Test the full pipeline locally
-
-```bash
-cd backend
-python3 -c "
-from document_parser import DocumentParser
-from agent import run_agent
-
-parsed = DocumentParser().parse('your_doc.pdf', 'your_doc.pdf')
-result = run_agent(
-    raw_text=parsed.raw_text,
-    filename='your_doc.pdf',
-    style='concis',
-    language='fr',
-    detail_level=3,
-)
-print(result['summary'])
-print(result['key_points'])
-"
-```
+| File storage | UUID filenames, deleted after processing |
+| Path traversal | Extension whitelist + UUID |
+| SQL injection | SQLAlchemy ORM (parameterized queries) |
+| Password storage | bcrypt, never plaintext |
+| Token revocation | Refresh tokens stored in DB |
+| CORS | Configurable origins |
+| Rate limiting | Per-IP sliding window |
 
 ---
 
 ## 🗺 Roadmap
 
-- [x] RAG pipeline with cosine similarity
-- [x] LangGraph multi-node agent
-- [x] ChatGroq integration (llama-3.3-70b)
-- [x] Multi-format document support (PDF, DOCX, TXT, MD, RTF)
+- [x] RAG pipeline with ChromaDB
+- [x] LangGraph 5-node agent
+- [x] Groq LLM integration (llama-3.3-70b)
+- [x] Multi-format document support
 - [x] Multilingual output (FR, EN, AR, ES)
-- [x] Web interface with drag & drop
-- [ ] Persistent vector store (ChromaDB / FAISS)
+- [x] Google OAuth 2.0
+- [x] Email/password authentication
+- [x] PostgreSQL + SQLAlchemy async
+- [x] JWT with refresh token rotation
+- [x] Summary history per user
 - [ ] Streaming response (SSE)
-- [ ] Batch processing — multiple documents
-- [ ] Docker & docker-compose
-- [ ] Authentication (API key / OAuth2)
+- [ ] Docker + docker-compose
+- [ ] Alembic migrations
 - [ ] Export to PDF / DOCX
-- [ ] Conversation mode — ask follow-up questions on the document
-
----
-
-## 🤝 Contributing
-
-```bash
-# Fork → clone → branch
-git checkout -b feat/your-feature
-
-# Develop, test, lint
-uv run pytest
-uv run ruff check backend/
-
-# Commit with conventional commits
-git commit -m "feat(rag): add persistent ChromaDB store"
-
-# Open a Pull Request
-```
+- [ ] Batch processing
+- [ ] Conversation mode on document
 
 ---
 
@@ -632,12 +587,16 @@ git commit -m "feat(rag): add persistent ChromaDB store"
 
 <table>
 <tr>
-<td align="center" style="padding: 20px;">
+<td align="center" style="padding:20px">
 <br/>
-<strong style="font-size:18px;">DIAWANE Ramatoulaye</strong>
+<strong style="font-size:20px">DIAWANE Ramatoulaye</strong>
 <br/><br/>
 <a href="mailto:rdiawane2001@gmail.com">
   <img src="https://img.shields.io/badge/Gmail-rdiawane2001%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white"/>
+</a>
+<br/><br/>
+<a href="https://github.com/Ramadiaw12/Archify">
+  <img src="https://img.shields.io/badge/GitHub-Ramadiaw12%2FArchify-181717?style=for-the-badge&logo=github&logoColor=white"/>
 </a>
 </td>
 </tr>
@@ -649,8 +608,10 @@ git commit -m "feat(rag): add persistent ChromaDB store"
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer" width="100%"/>
 
-**Built with** ❤️ **by DIAWANE Ramatoulaye — RAG · LangGraph · Groq · FastAPI · uv**
+**Built with ❤️ by DIAWANE Ramatoulaye**
+
+**RAG · LangGraph · Groq · FastAPI · PostgreSQL · uv**
 
 </div>
