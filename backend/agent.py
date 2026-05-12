@@ -25,8 +25,7 @@ from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
 
 from config import settings
-from rag import TextChunker, EmbeddingEngine, VectorStore, Chunk
-
+from rag import chunker, rag_engine, Chunk
 
 # ── Client Groq natif ─────────────────────────────────────────────────────────
 
