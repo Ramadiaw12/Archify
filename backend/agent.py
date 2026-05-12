@@ -114,54 +114,29 @@ def _parse_json(text: str) -> dict:
 # ── Nœud 1 : Chunking + Embedding ────────────────────────────────────────────
 
 def node_chunk_and_embed(state: AgentState) -> AgentState:
-    """Découpe le texte en chunks et génère leurs embeddings."""
-    chunker = TextChunker(
-        chunk_size=settings.chunk_size,
-        overlap=settings.chunk_overlap,
-    )
+    """Découpe le texte en chunks."""
     raw_chunks = chunker.chunk(state["raw_text"])
 
     if not raw_chunks:
         return {**state, "error": "Le document est vide après extraction."}
 
-    engine     = EmbeddingEngine(settings.embedding_model)
-    embeddings = engine.embed(raw_chunks)
-
     chunks_data = [
-        {"text": text, "index": i, "embedding": emb}
-        for i, (text, emb) in enumerate(zip(raw_chunks, embeddings))
+        {"text": text, "index": i}
+        for i, text in enumerate(raw_chunks)
     ]
     return {**state, "chunks": chunks_data}
-
 
 # ── Nœud 2 : Retrieval RAG ───────────────────────────────────────────────────
 
 def node_retrieve(state: AgentState) -> AgentState:
-    """
-    Sélectionne les chunks les plus pertinents par similarité cosinus.
-    embed_with_query() encode chunks + requête ensemble → même dimension garantie.
-    """
+    """Récupère les chunks pertinents via ChromaDB."""
     if not state["chunks"]:
         return state
 
     chunk_texts = [c["text"] for c in state["chunks"]]
-    auto_query  = " ".join(state["raw_text"].split()[:150])
+    _, context  = rag_engine.retrieve(chunk_texts, top_k=settings.top_k_chunks)
 
-    engine = EmbeddingEngine(settings.embedding_model)
-    chunk_embeddings, query_embedding = engine.embed_with_query(chunk_texts, auto_query)
-
-    store = VectorStore()
-    store.add_chunks([
-        Chunk(text=c["text"], index=c["index"], embedding=emb)
-        for c, emb in zip(state["chunks"], chunk_embeddings)
-    ])
-
-    top_chunks = store.search(query_embedding, top_k=settings.top_k_chunks)
-    context    = "\n\n---\n\n".join(
-        f"[Extrait {c.index + 1}]\n{c.text}" for c in top_chunks
-    )
     return {**state, "context": context}
-
 
 # ── Nœud 3 : Classification Groq ────────────────────────────────────────────
 
