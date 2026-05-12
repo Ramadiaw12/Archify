@@ -1,8 +1,4 @@
 # backend/config.py
-"""
-Configuration centralisée — lue depuis .env
-"""
-
 from pathlib import Path
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,7 +12,7 @@ for _candidate in [_here / ".env", _root / ".env", Path(".env")]:
         print(f"[Config] .env trouvé : {_candidate.resolve()}")
         break
 else:
-    print("[Config] ⚠️  Aucun .env trouvé — variables système utilisées")
+    print("[Config] ⚠️  Aucun .env trouvé")
 
 
 class Settings(BaseSettings):
@@ -40,19 +36,19 @@ class Settings(BaseSettings):
 
     # ── Upload ────────────────────────────────────────────────────────────────
     max_file_size_mb:        int       = 20
-    allowed_extensions:      list[str] = [".pdf", ".docx", ".doc", ".txt", ".md", ".rtf"]
+    allowed_extensions:      list[str] = [".pdf",".docx",".doc",".txt",".md",".rtf"]
     upload_dir:              str       = "/tmp/docsummarizer"
     delete_after_processing: bool      = True
 
-    # ── MongoDB ───────────────────────────────────────────────────────────────
-    mongo_uri:     str = "mongodb://localhost:27017"
-    mongo_db_name: str = "docsummarizer"
+    # ── PostgreSQL ────────────────────────────────────────────────────────────
+    # Format : postgresql+asyncpg://user:password@host:port/dbname
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/docsummarizer"
 
     # ── JWT ───────────────────────────────────────────────────────────────────
-    jwt_secret_key:                str = "change-me-in-production-use-openssl-rand-hex-32"
-    jwt_algorithm:                 str = "HS256"
-    access_token_expire_minutes:   int = 15
-    refresh_token_expire_days:     int = 7
+    jwt_secret_key:              str = "change-me-use-openssl-rand-hex-32"
+    jwt_algorithm:               str = "HS256"
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days:   int = 7
 
     # ── Google OAuth ──────────────────────────────────────────────────────────
     google_client_id:     str = ""
@@ -64,7 +60,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-print(f"[Config] GROQ_API_KEY  : {'✅' if settings.groq_api_key else '❌ MANQUANTE'}")
-print(f"[Config] GROQ_MODEL    : {settings.groq_model}")
-print(f"[Config] MONGO_URI     : {settings.mongo_uri}")
-print(f"[Config] GOOGLE_AUTH   : {'✅' if settings.google_client_id else '⚠️  non configuré'}")
+print(f"[Config] GROQ        : {'✅' if settings.groq_api_key else '❌'}")
+print(f"[Config] DATABASE    : {settings.database_url[:40]}...")
+print(f"[Config] JWT         : {'✅' if 'change-me' not in settings.jwt_secret_key else '⚠️  clé par défaut'}")
+print(f"[Config] GOOGLE_AUTH : {'✅' if settings.google_client_id else '⚠️  non configuré'}")

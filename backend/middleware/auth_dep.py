@@ -1,75 +1,37 @@
 # backend/middleware/auth_dep.py
 """
-Dépendances FastAPI pour l'authentification.
-Utilisées avec Depends() dans les routes protégées.
-
-Usage :
-    @router.get("/me")
-    async def get_me(user: UserPublic = Depends(require_auth)):
-        return user
-
-    @router.get("/admin")
-    async def admin_only(user: UserPublic = Depends(require_admin)):
-        return user
+Dépendances FastAPI pour l'authentification — version PostgreSQL.
 """
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.service import get_current_user
+from db.database import get_session
 from db.models import UserPublic, UserRole
 
-# Schéma Bearer Token — FastAPI extrait automatiquement le token du header
-# Authorization: Bearer <token>
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
 async def require_auth(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db:          AsyncSession = Depends(get_session),
 ) -> UserPublic:
-    """
-    Dépendance : exige un utilisateur authentifié.
-    Extrait et valide le Bearer token depuis le header Authorization.
-
-    Raises:
-        HTTP 401 si token absent ou invalide
-    """
+    """Exige un utilisateur authentifié — lève HTTP 401 sinon."""
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token d'authentification manquant.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    return await get_current_user(credentials.credentials)
-
-
-async def require_verified(
-    user: UserPublic = Depends(require_auth),
-) -> UserPublic:
-    """
-    Dépendance : exige un utilisateur authentifié ET avec email vérifié.
-
-    Raises:
-        HTTP 403 si email non vérifié
-    """
-    if not user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Vérifiez votre adresse email avant de continuer.",
-        )
-    return user
+    return await get_current_user(db, credentials.credentials)
 
 
 async def require_admin(
     user: UserPublic = Depends(require_auth),
 ) -> UserPublic:
-    """
-    Dépendance : exige un utilisateur avec le rôle admin.
-
-    Raises:
-        HTTP 403 si l'utilisateur n'est pas admin
-    """
+    """Exige le rôle admin — lève HTTP 403 sinon."""
     if user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -80,14 +42,12 @@ async def require_admin(
 
 async def optional_auth(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db:          AsyncSession = Depends(get_session),
 ) -> UserPublic | None:
-    """
-    Dépendance optionnelle : retourne l'utilisateur si authentifié, None sinon.
-    Utile pour les endpoints publics qui ont un comportement enrichi si connecté.
-    """
+    """Auth optionnelle — retourne None si non connecté."""
     if not credentials:
         return None
     try:
-        return await get_current_user(credentials.credentials)
+        return await get_current_user(db, credentials.credentials)
     except HTTPException:
         return None

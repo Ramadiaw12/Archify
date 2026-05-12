@@ -1,135 +1,219 @@
 # backend/db/models.py
 """
-Modèles Pydantic pour la validation et la sérialisation des données MongoDB.
-Chaque modèle correspond à une collection MongoDB.
+Modèles SQLAlchemy (ORM) — tables PostgreSQL.
+
+Tables :
+  users      — utilisateurs (email/password + Google OAuth)
+  sessions   — refresh tokens actifs (révocation)
+  summaries  — résumés générés par utilisateur
 """
 
+import uuid
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
-from bson import ObjectId
+from enum import Enum as PyEnum
 
+from sqlalchemy import (
+    Boolean, Column, DateTime, Enum, ForeignKey,
+    Integer, JSON, String, Text, UniqueConstraint, Index,
+)
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
-# ── Helper ObjectId ───────────────────────────────────────────────────────────
-
-class PyObjectId(str):
-    """Conversion ObjectId MongoDB ↔ string pour Pydantic v2."""
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if isinstance(v, ObjectId):
-            return str(v)
-        if ObjectId.is_valid(str(v)):
-            return str(v)
-        raise ValueError(f"ObjectId invalide : {v}")
+from db.database import Base
 
 
 # ── Enums ─────────────────────────────────────────────────────────────────────
 
-class AuthProvider(str, Enum):
+class AuthProvider(str, PyEnum):
     EMAIL  = "email"
     GOOGLE = "google"
 
 
-class UserRole(str, Enum):
+class UserRole(str, PyEnum):
     USER  = "user"
     ADMIN = "admin"
 
 
-# ── Modèle Utilisateur ────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
-class UserInDB(BaseModel):
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+def _uuid() -> str:
+    return str(uuid.uuid4())
+
+
+# ── Table : users ─────────────────────────────────────────────────────────────
+
+class User(Base):
     """
-    Document utilisateur stocké dans MongoDB.
-    Supporte les deux méthodes d'auth : email/password et Google OAuth.
+    Utilisateur de l'application.
+    Supporte deux méthodes d'auth :
+      - email/password (hashed_password non null)
+      - Google OAuth   (google_id non null)
+    Un utilisateur peut avoir les deux (compte lié).
     """
-    id:             Optional[str]      = Field(None, alias="_id")
-    email:          EmailStr
-    full_name:      str
-    avatar_url:     Optional[str]      = None
-    role:           UserRole           = UserRole.USER
+    __tablename__ = "users"
 
-    # Auth email/password
-    hashed_password: Optional[str]    = None   # None si auth Google uniquement
+    id              = Column(String(36),  primary_key=True,  default=_uuid)
+    email           = Column(String(255), nullable=False,     unique=True,  index=True)
+    full_name       = Column(String(100), nullable=False)
+    avatar_url      = Column(Text,        nullable=True)
+    role            = Column(Enum(UserRole), nullable=False,  default=UserRole.USER)
 
-    # Auth Google OAuth
-    google_id:      Optional[str]      = None
-    provider:       AuthProvider       = AuthProvider.EMAIL
+    # Auth email
+    hashed_password = Column(String(255), nullable=True)   # None si Google only
+
+    # Auth Google
+    google_id       = Column(String(100), nullable=True,   index=True)
+    provider        = Column(Enum(AuthProvider), nullable=False, default=AuthProvider.EMAIL)
 
     # Sécurité
-    is_active:      bool               = True
-    is_verified:    bool               = False  # email confirmé
-    failed_attempts: int               = 0      # tentatives de connexion échouées
-    locked_until:   Optional[datetime] = None   # verrouillage temporaire
+    is_active       = Column(Boolean,    nullable=False,    default=True)
+    is_verified     = Column(Boolean,    nullable=False,    default=False)
+    failed_attempts = Column(Integer,    nullable=False,    default=0)
+    locked_until    = Column(DateTime(timezone=True), nullable=True)
 
     # Timestamps
-    created_at:     datetime           = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at:     datetime           = Field(default_factory=lambda: datetime.now(timezone.utc))
-    last_login:     Optional[datetime] = None
+    created_at      = Column(DateTime(timezone=True), nullable=False, default=_now)
+    updated_at      = Column(DateTime(timezone=True), nullable=False, default=_now, onupdate=_now)
+    last_login      = Column(DateTime(timezone=True), nullable=True)
 
-    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    # Relations
+    sessions        = relationship("Session",  back_populates="user", cascade="all, delete-orphan")
+    summaries       = relationship("Summary",  back_populates="user", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_users_email_active", "email", "is_active"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<User id={self.id} email={self.email}>"
+
+
+# ── Table : sessions ──────────────────────────────────────────────────────────
+
+class Session(Base):
+    """
+    Refresh token actif.
+    Supprimé lors du logout ou à l'expiration.
+    Permet la révocation individuelle de sessions.
+    """
+    __tablename__ = "sessions"
+
+    id          = Column(String(36),  primary_key=True, default=_uuid)
+    jti         = Column(String(36),  nullable=False,   unique=True,  index=True)   # JWT ID
+    user_id     = Column(String(36),  ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_agent  = Column(Text,        nullable=True)
+    ip_address  = Column(String(45),  nullable=True)    # IPv4 (15) ou IPv6 (45)
+    created_at  = Column(DateTime(timezone=True), nullable=False, default=_now)
+    expires_at  = Column(DateTime(timezone=True), nullable=False)
+
+    # Relation
+    user = relationship("User", back_populates="sessions")
+
+    __table_args__ = (
+        Index("ix_sessions_user_id", "user_id"),
+        Index("ix_sessions_expires_at", "expires_at"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<Session jti={self.jti} user_id={self.user_id}>"
+
+
+# ── Table : summaries ─────────────────────────────────────────────────────────
+
+class Summary(Base):
+    """
+    Résumé généré par l'agent NLP, lié à un utilisateur.
+    Stocke le résultat complet du pipeline RAG + Groq.
+    """
+    __tablename__ = "summaries"
+
+    id            = Column(String(36),  primary_key=True, default=_uuid)
+    user_id       = Column(String(36),  ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    # Fichier source
+    filename      = Column(String(255), nullable=False)
+    file_type     = Column(String(10),  nullable=False)
+
+    # Résultat du pipeline
+    summary       = Column(Text,        nullable=False)
+    key_points    = Column(JSON,        nullable=False, default=list)
+    document_type = Column(String(100), nullable=False, default="Document")
+    sentiment     = Column(String(20),  nullable=False, default="neutre")
+    complexity    = Column(String(20),  nullable=False, default="intermédiaire")
+    main_topics   = Column(JSON,        nullable=False, default=list)
+
+    # Paramètres utilisés
+    style         = Column(String(20),  nullable=False, default="concis")
+    language      = Column(String(5),   nullable=False, default="fr")
+    stats         = Column(JSON,        nullable=False, default=dict)
+
+    # Timestamp
+    created_at    = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    # Relation
+    user = relationship("User", back_populates="summaries")
+
+    __table_args__ = (
+        Index("ix_summaries_user_created", "user_id", "created_at"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<Summary id={self.id} user_id={self.user_id} file={self.filename}>"
+
+
+# ── Schémas Pydantic (réponses API) ──────────────────────────────────────────
+# Séparés des modèles SQLAlchemy pour découpler ORM et API
+
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 
 
 class UserPublic(BaseModel):
-    """Données utilisateur exposées dans les réponses API (sans infos sensibles)."""
-    id:         str
-    email:      EmailStr
-    full_name:  str
-    avatar_url: Optional[str]
-    role:       UserRole
-    provider:   AuthProvider
+    """Données utilisateur retournées dans les réponses API."""
+    id:          str
+    email:       EmailStr
+    full_name:   str
+    avatar_url:  Optional[str]
+    role:        UserRole
+    provider:    AuthProvider
     is_verified: bool
-    created_at: datetime
-    last_login: Optional[datetime]
+    created_at:  datetime
+    last_login:  Optional[datetime]
+
+    model_config = {"from_attributes": True}
 
 
-# ── Modèle Session ────────────────────────────────────────────────────────────
-
-class SessionInDB(BaseModel):
-    """
-    Document session stocké dans MongoDB.
-    Le TTL index supprime automatiquement les sessions expirées.
-    """
-    id:         Optional[str]  = Field(None, alias="_id")
-    jti:        str            # JWT ID unique — pour la révocation de token
-    user_id:    str
-    user_agent: Optional[str]  = None
-    ip_address: Optional[str]  = None
-    created_at: datetime       = Field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: datetime       # Le TTL index MongoDB utilise ce champ
-
-    model_config = {"populate_by_name": True}
+class TokenResponse(BaseModel):
+    """Réponse avec les tokens JWT."""
+    access_token:  str
+    refresh_token: str
+    token_type:    str = "bearer"
+    expires_in:    int   # secondes avant expiration de l'access token
 
 
-# ── Modèle Résumé ─────────────────────────────────────────────────────────────
+class RegisterRequest(BaseModel):
+    """Corps de requête pour l'inscription."""
+    email:     EmailStr
+    password:  str = Field(..., min_length=8, max_length=128)
+    full_name: str = Field(..., min_length=2, max_length=100)
 
-class SummaryInDB(BaseModel):
-    """Document résumé stocké dans MongoDB, lié à un utilisateur."""
-    id:            Optional[str] = Field(None, alias="_id")
-    user_id:       str
-    filename:      str
-    file_type:     str
-    summary:       str
-    key_points:    list[str]    = []
-    document_type: str
-    sentiment:     str
-    complexity:    str
-    main_topics:   list[str]   = []
-    style:         str
-    language:      str
-    stats:         dict         = {}
-    created_at:    datetime     = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    model_config = {"populate_by_name": True}
+class LoginRequest(BaseModel):
+    """Corps de requête pour la connexion."""
+    email:    EmailStr
+    password: str
+
+
+class RefreshRequest(BaseModel):
+    """Corps de requête pour le rafraîchissement de token."""
+    refresh_token: str
 
 
 class SummaryPublic(BaseModel):
-    """Résumé exposé dans les réponses API."""
+    """Résumé retourné dans les réponses API."""
     id:            str
     filename:      str
     file_type:     str
@@ -144,30 +228,4 @@ class SummaryPublic(BaseModel):
     stats:         dict
     created_at:    datetime
 
-
-# ── Schémas de requête ────────────────────────────────────────────────────────
-
-class RegisterRequest(BaseModel):
-    """Corps de la requête d'inscription email/password."""
-    email:     EmailStr
-    password:  str = Field(..., min_length=8, max_length=128)
-    full_name: str = Field(..., min_length=2, max_length=100)
-
-
-class LoginRequest(BaseModel):
-    """Corps de la requête de connexion email/password."""
-    email:    EmailStr
-    password: str
-
-
-class TokenResponse(BaseModel):
-    """Réponse contenant les tokens JWT."""
-    access_token:  str
-    refresh_token: str
-    token_type:    str = "bearer"
-    expires_in:    int  # secondes
-
-
-class RefreshRequest(BaseModel):
-    """Corps de la requête de rafraîchissement de token."""
-    refresh_token: str
+    model_config = {"from_attributes": True}
