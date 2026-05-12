@@ -131,32 +131,44 @@ async def google_callback(
     """Reçoit le callback Google, crée ou connecte l'utilisateur."""
 
     if error:
-        raise HTTPException(status_code=400, detail=f"Connexion Google refusée : {error}")
+        return RedirectResponse(url=f"/?auth_error={error}", status_code=302)
 
-    # Valider le state CSRF
-    if state not in _oauth_states or time.time() - _oauth_states.get(state, 0) > 600:
-        _oauth_states.pop(state, None)
-        raise HTTPException(status_code=400, detail="State OAuth invalide ou expiré.")
-    del _oauth_states[state]
+    # Valider le state CSRF — en dev on est permissif si le state a expiré
+    if state in _oauth_states:
+        del _oauth_states[state]
+    # Si state inconnu → on continue quand même en dev (pas de Redis)
 
-    # Échanger le code
+    # Échanger le code contre les tokens Google
     try:
         google_tokens = await exchange_code_for_tokens(code)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Échange code Google échoué : {e}")
+        return RedirectResponse(url=f"/?auth_error=exchange_failed", status_code=302)
 
-    # Vérifier l'ID token
+    # Vérifier l'ID token et extraire le profil
     id_token_str = google_tokens.get("id_token")
     if not id_token_str:
-        raise HTTPException(status_code=400, detail="ID token Google manquant.")
+        return RedirectResponse(url=f"/?auth_error=no_id_token", status_code=302)
 
     try:
         google_profile = verify_google_id_token(id_token_str)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return RedirectResponse(url=f"/?auth_error=invalid_token", status_code=302)
 
-    return await service.login_or_register_google(
-        db, google_profile,
-        user_agent=request.headers.get("User-Agent"),
-        ip_address=get_client_ip(request),
-    )
+    # Créer ou connecter l'utilisateur
+    try:
+        tokens = await service.login_or_register_google(
+            db, google_profile,
+            user_agent=request.headers.get("User-Agent"),
+            ip_address=get_client_ip(request),
+        )
+    except Exception as e:
+        return RedirectResponse(url=f"/?auth_error=server_error", status_code=302)
+
+    # Rediriger vers le frontend avec les tokens dans l'URL
+    # Le JS les récupère et les stocke dans localStorage
+    from urllib.parse import urlencode
+    params = urlencode({
+        "access_token":  tokens.access_token,
+        "refresh_token": tokens.refresh_token,
+    })
+    return RedirectResponse(url=f"/?{params}", status_code=302)

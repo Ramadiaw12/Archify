@@ -179,6 +179,23 @@ async function apiSummaries(page = 1) {
 ══════════════════════════════════════════════════════════════ */
 
 async function initAuth() {
+  // Récupérer les tokens depuis l'URL (retour Google OAuth)
+  const params = new URLSearchParams(window.location.search);
+  const urlAccess  = params.get("access_token");
+  const urlRefresh = params.get("refresh_token");
+  const authError  = params.get("auth_error");
+
+  if (authError) {
+    showAlert(`Connexion Google échouée : ${authError}`);
+    window.history.replaceState({}, "", "/");
+  }
+
+  if (urlAccess && urlRefresh) {
+    saveTokens(urlAccess, urlRefresh);
+    // Nettoyer l'URL sans recharger la page
+    window.history.replaceState({}, "", "/");
+  }
+
   loadTokens();
   if (!state.access_token) {
     renderHeaderGuest();
