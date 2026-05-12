@@ -5,37 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DocSummarizer — Résumé intelligent de documents</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ══════════════════════════════════════════════ HEADER -->
+  <!-- ══════════════════════════════════════ HEADER -->
   <header class="header">
     <div class="container header-inner">
 
       <div class="logo">
-        <div class="logo-mark" aria-hidden="true">DS</div>
+        <div class="logo-mark">DS</div>
         <span class="logo-name">Doc<span>Summarizer</span></span>
       </div>
 
-      <div class="header-tags" aria-label="Technologies utilisées">
+      <div class="header-tags">
         <span class="tag tag-blue">RAG</span>
         <span class="tag tag-dark">LangGraph</span>
         <span class="tag tag-green">Groq AI</span>
       </div>
 
+      <!-- Auth zone -->
+      <div class="header-auth" id="header-auth">
+        <!-- Injecté par JS selon l'état de connexion -->
+      </div>
+
     </div>
   </header>
 
-  <!-- ══════════════════════════════════════════════ HERO -->
-  <section class="hero" aria-labelledby="hero-title">
+  <!-- ══════════════════════════════════════ HERO -->
+  <section class="hero">
     <div class="container hero-inner">
       <div class="hero-badge">Powered by Groq · LangGraph · RAG</div>
-      <h1 class="hero-title" id="hero-title">
+      <h1 class="hero-title">
         Résumez vos documents<br />
         <em>en quelques secondes</em>
       </h1>
@@ -44,44 +46,31 @@
         notre pipeline <strong>RAG + LangGraph + Groq</strong>
         en extrait l'essentiel de façon claire et précise.
       </p>
-      <div class="hero-security" role="note">
+      <div class="hero-security">
         🔒 Vos documents sont supprimés immédiatement après traitement
       </div>
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════ MAIN -->
+  <!-- ══════════════════════════════════════ MAIN -->
   <main class="container main-layout">
 
-    <!-- ──────────────────────────── COLONNE FORMULAIRE -->
+    <!-- ── COLONNE GAUCHE -->
     <div class="form-column">
 
       <!-- ÉTAPE 1 — Upload -->
-      <section class="card" aria-labelledby="s1-title">
-        <header class="card-head">
-          <span class="step-num" aria-hidden="true">01</span>
-          <h2 class="card-title" id="s1-title">Télécharger votre document</h2>
-        </header>
+      <section class="card">
+        <div class="card-head">
+          <span class="step-num">01</span>
+          <h2 class="card-title">Télécharger votre document</h2>
+        </div>
 
-        <!-- Zone de dépôt -->
-        <div
-          class="dropzone"
-          id="dropzone"
-          role="button"
-          tabindex="0"
-          aria-label="Zone de dépôt — cliquer ou glisser un fichier"
-          aria-describedby="drop-types"
-        >
-          <input
-            type="file"
-            id="file-input"
-            accept=".pdf,.doc,.docx,.txt,.md,.rtf"
-            aria-label="Choisir un fichier"
-          />
-          <div class="drop-icon" aria-hidden="true">⬆</div>
+        <div class="dropzone" id="dropzone" role="button" tabindex="0">
+          <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.md,.rtf" />
+          <div class="drop-icon">⬆</div>
           <p class="drop-title">Glissez votre fichier ici</p>
           <p class="drop-sub">ou <span class="link-text">cliquer pour parcourir</span></p>
-          <div class="drop-formats" id="drop-types" aria-label="Formats acceptés">
+          <div class="drop-formats">
             <span class="fmt">PDF</span>
             <span class="fmt">DOCX</span>
             <span class="fmt">TXT</span>
@@ -90,63 +79,51 @@
           </div>
         </div>
 
-        <!-- Aperçu fichier sélectionné -->
         <div class="file-preview" id="file-preview" hidden>
           <div class="file-card" id="file-card"></div>
         </div>
       </section>
 
       <!-- ÉTAPE 2 — Options -->
-      <section class="card" aria-labelledby="s2-title">
-        <header class="card-head">
-          <span class="step-num" aria-hidden="true">02</span>
-          <h2 class="card-title" id="s2-title">Paramètres du résumé</h2>
-        </header>
+      <section class="card">
+        <div class="card-head">
+          <span class="step-num">02</span>
+          <h2 class="card-title">Paramètres du résumé</h2>
+        </div>
 
         <div class="fields-row">
           <div class="field">
-            <label class="field-label" for="sel-style">Style de résumé</label>
+            <label class="field-label" for="sel-style">Style</label>
             <select class="select" id="sel-style">
               <option value="concis">Concis (2-3 §)</option>
               <option value="detaille">Détaillé (4-6 §)</option>
-              <option value="bullet">Points clés (liste)</option>
+              <option value="bullet">Points clés</option>
               <option value="executif">Rapport exécutif</option>
               <option value="pedagogique">Fiche pédagogique</option>
             </select>
           </div>
-
           <div class="field">
             <label class="field-label" for="sel-lang">Langue de sortie</label>
             <select class="select" id="sel-lang">
-              <option value="fr">🇫🇷  Français</option>
-              <option value="en">🇬🇧  Anglais</option>
-              <option value="ar">🇲🇦  Arabe</option>
-              <option value="es">🇪🇸  Espagnol</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="en">🇬🇧 Anglais</option>
+              <option value="ar">🇲🇦 Arabe</option>
+              <option value="es">🇪🇸 Espagnol</option>
             </select>
           </div>
         </div>
 
         <div class="field">
           <label class="field-label" for="range-detail">
-            Niveau de détail —
-            <span class="range-val" id="range-val">3 / 5</span>
+            Niveau de détail — <span class="range-val" id="range-val">3 / 5</span>
           </label>
-          <input
-            type="range"
-            class="range-input"
-            id="range-detail"
-            min="1" max="5" value="3" step="1"
-            aria-valuemin="1" aria-valuemax="5" aria-valuenow="3"
-          />
-          <div class="range-ends" aria-hidden="true">
-            <span>Bref</span>
-            <span>Exhaustif</span>
-          </div>
+          <input type="range" class="range-input" id="range-detail" min="1" max="5" value="3" step="1" />
+          <div class="range-ends"><span>Bref</span><span>Exhaustif</span></div>
         </div>
 
-        <fieldset class="field toggles-group">
+        <fieldset class="toggles-group">
           <legend class="field-label">Inclure dans le résumé</legend>
-          <div class="toggles" id="toggles" role="group">
+          <div class="toggles" id="toggles">
             <button class="toggle on" type="button" data-key="keypoints">Points clés</button>
             <button class="toggle on" type="button" data-key="stats">Chiffres</button>
             <button class="toggle"    type="button" data-key="quotes">Citations</button>
@@ -154,139 +131,190 @@
             <button class="toggle on" type="button" data-key="conclusion">Conclusion</button>
           </div>
         </fieldset>
-
       </section>
 
-      <!-- ÉTAPE 3 — Pipeline + Lancer -->
-      <section class="card" aria-labelledby="s3-title">
-        <header class="card-head">
-          <span class="step-num" aria-hidden="true">03</span>
-          <h2 class="card-title" id="s3-title">Pipeline de traitement</h2>
-        </header>
-
-        <!-- Visualisation du pipeline -->
-        <div class="pipeline" id="pipeline" role="list" aria-label="Étapes du pipeline">
-          <div class="pipe-step" id="pipe-0" role="listitem" aria-label="Extraction">
-            <div class="pipe-icon">📄</div>
-            <div class="pipe-lbl">Extraction</div>
-          </div>
-          <div class="pipe-arrow" aria-hidden="true">→</div>
-          <div class="pipe-step" id="pipe-1" role="listitem" aria-label="RAG Chunking">
-            <div class="pipe-icon">🧩</div>
-            <div class="pipe-lbl">RAG</div>
-          </div>
-          <div class="pipe-arrow" aria-hidden="true">→</div>
-          <div class="pipe-step" id="pipe-2" role="listitem" aria-label="Embedding">
-            <div class="pipe-icon">🔢</div>
-            <div class="pipe-lbl">Embed</div>
-          </div>
-          <div class="pipe-arrow" aria-hidden="true">→</div>
-          <div class="pipe-step" id="pipe-3" role="listitem" aria-label="Groq">
-            <div class="pipe-icon">⚡</div>
-            <div class="pipe-lbl">Groq</div>
-          </div>
-          <div class="pipe-arrow" aria-hidden="true">→</div>
-          <div class="pipe-step" id="pipe-4" role="listitem" aria-label="LangGraph">
-            <div class="pipe-icon">🌿</div>
-            <div class="pipe-lbl">Graph</div>
-          </div>
-          <div class="pipe-arrow" aria-hidden="true">→</div>
-          <div class="pipe-step" id="pipe-5" role="listitem" aria-label="Groq LLM">
-            <div class="pipe-icon">⚡</div>
-            <div class="pipe-lbl">Groq</div>
-          </div>
+      <!-- ÉTAPE 3 — Pipeline -->
+      <section class="card">
+        <div class="card-head">
+          <span class="step-num">03</span>
+          <h2 class="card-title">Pipeline de traitement</h2>
         </div>
 
-        <!-- Barre de progression (cachée par défaut) -->
+        <div class="pipeline" id="pipeline">
+          <div class="pipe-step" id="pipe-0"><div class="pipe-icon">📄</div><div class="pipe-lbl">Extraction</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" id="pipe-1"><div class="pipe-icon">🧩</div><div class="pipe-lbl">RAG</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" id="pipe-2"><div class="pipe-icon">🔢</div><div class="pipe-lbl">Embed</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" id="pipe-3"><div class="pipe-icon">⚡</div><div class="pipe-lbl">Groq</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" id="pipe-4"><div class="pipe-icon">🌿</div><div class="pipe-lbl">Graph</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" id="pipe-5"><div class="pipe-icon">✅</div><div class="pipe-lbl">Résumé</div></div>
+        </div>
+
         <div id="progress-area" hidden>
-          <div
-            class="progress-bar"
-            role="progressbar"
-            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
-          >
-            <div class="progress-fill" id="progress-fill"></div>
-          </div>
-          <p class="progress-msg" id="progress-msg" aria-live="polite">Initialisation…</p>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <p class="progress-msg" id="progress-msg">Initialisation…</p>
         </div>
 
-        <!-- Alertes -->
-        <div id="alert-area" role="alert" aria-live="assertive"></div>
+        <div id="alert-area" role="alert"></div>
 
-        <!-- Bouton principal -->
-        <button
-          class="btn-primary"
-          id="btn-go"
-          type="button"
-          disabled
-          aria-disabled="true"
-        >
-          ✦ &nbsp; Analyser et générer le résumé
+        <button class="btn-primary" id="btn-go" type="button" disabled>
+          ✦ &nbsp;Analyser et générer le résumé
         </button>
-
       </section>
+
+      <!-- HISTORIQUE (visible si connecté) -->
+      <section class="card" id="history-section" hidden>
+        <div class="card-head">
+          <span class="step-num">📋</span>
+          <h2 class="card-title">Mes résumés récents</h2>
+        </div>
+        <div id="history-list">
+          <p style="color:var(--text-muted);font-size:13px;">Chargement…</p>
+        </div>
+      </section>
+
     </div>
 
-    <!-- ──────────────────────────── COLONNE RÉSULTATS -->
+    <!-- ── COLONNE DROITE — Résultats -->
     <div class="result-column">
 
-      <!-- État vide -->
       <div class="empty-state" id="empty-state">
-        <div class="empty-icon" aria-hidden="true">📋</div>
+        <div class="empty-icon">📋</div>
         <p class="empty-title">Le résumé apparaîtra ici</p>
-        <p class="empty-sub">
-          Chargez un document, configurez vos préférences<br />et lancez l'analyse.
-        </p>
+        <p class="empty-sub">Chargez un document, configurez vos préférences<br />et lancez l'analyse.</p>
       </div>
 
-      <!-- Panneau de résultats (caché jusqu'au premier résumé) -->
-      <div class="result-panel" id="result-panel" hidden aria-live="polite">
+      <div class="result-panel" id="result-panel" hidden>
 
-        <!-- En-tête résultat -->
         <div class="result-head">
           <div class="result-badges" id="result-badges"></div>
-          <button
-            class="btn-copy"
-            id="btn-copy"
-            type="button"
-            title="Copier le résumé"
-            aria-label="Copier le résumé dans le presse-papier"
-          >
-            📋 Copier
-          </button>
+          <button class="btn-copy" id="btn-copy" type="button">📋 Copier</button>
         </div>
 
-        <!-- Onglets -->
-        <div class="tabs" role="tablist" aria-label="Sections du résumé">
-          <button class="tab active" role="tab" aria-selected="true"  data-tab="summary"   aria-controls="panel-summary">Résumé</button>
-          <button class="tab"        role="tab" aria-selected="false" data-tab="keypoints" aria-controls="panel-keypoints">Points clés</button>
-          <button class="tab"        role="tab" aria-selected="false" data-tab="stats"     aria-controls="panel-stats">Statistiques</button>
-          <button class="tab"        role="tab" aria-selected="false" data-tab="pipeline"  aria-controls="panel-pipeline">Pipeline</button>
+        <div class="tabs" role="tablist">
+          <button class="tab active" role="tab" data-tab="summary">Résumé</button>
+          <button class="tab" role="tab" data-tab="keypoints">Points clés</button>
+          <button class="tab" role="tab" data-tab="stats">Statistiques</button>
+          <button class="tab" role="tab" data-tab="pipeline">Pipeline</button>
         </div>
 
-        <!-- Contenu onglets -->
-        <div class="tab-body" id="tab-body" role="tabpanel"></div>
-
+        <div class="tab-body" id="tab-body"></div>
       </div>
     </div>
 
   </main>
 
-  <!-- ══════════════════════════════════════════════ FOOTER -->
+  <!-- ══════════════════════════════════════ FOOTER -->
   <footer class="footer">
     <div class="container footer-inner">
       <p class="footer-stack">
-        Pipeline NLP open-source :
-        <strong>RAG</strong> · <strong>LangGraph</strong> ·
-        <strong>Groq AI</strong> ·
-        <strong>FastAPI</strong> · <strong>uv</strong>
+        Pipeline NLP : <strong>RAG</strong> · <strong>LangGraph</strong> · <strong>Groq AI</strong> · <strong>FastAPI</strong>
       </p>
-      <p class="footer-privacy">
-        🔒 Aucun document n'est conservé — suppression immédiate après traitement
-      </p>
+      <p class="footer-privacy">🔒 Aucun document conservé — suppression immédiate après traitement</p>
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <!-- ══════════════════════════════════════ MODAL AUTH -->
+  <div class="modal-overlay" id="modal-overlay" hidden>
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
 
+      <button class="modal-close" id="modal-close" type="button" aria-label="Fermer">✕</button>
+
+      <!-- Onglets Login / Register -->
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-modal-tab="login" type="button">Connexion</button>
+        <button class="modal-tab" data-modal-tab="register" type="button">Inscription</button>
+      </div>
+
+      <!-- ── LOGIN -->
+      <div class="modal-panel" id="panel-login">
+        <h2 class="modal-title" id="modal-title">Bienvenue</h2>
+        <p class="modal-sub">Connectez-vous pour sauvegarder vos résumés</p>
+
+        <!-- Google OAuth -->
+        <a href="/auth/google/login" class="btn-google">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+            <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          </svg>
+          Continuer avec Google
+        </a>
+
+        <div class="modal-divider"><span>ou</span></div>
+
+        <div class="field">
+          <label class="field-label" for="login-email">Email</label>
+          <input class="input" type="email" id="login-email" placeholder="votre@email.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="login-password">Mot de passe</label>
+          <input class="input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+
+        <div id="login-error" class="form-error" hidden></div>
+
+        <button class="btn-primary" id="btn-login" type="button">Se connecter</button>
+      </div>
+
+      <!-- ── REGISTER -->
+      <div class="modal-panel" id="panel-register" hidden>
+        <h2 class="modal-title">Créer un compte</h2>
+        <p class="modal-sub">Gratuit · Vos résumés sauvegardés automatiquement</p>
+
+        <a href="/auth/google/login" class="btn-google">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+            <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          </svg>
+          S'inscrire avec Google
+        </a>
+
+        <div class="modal-divider"><span>ou</span></div>
+
+        <div class="field">
+          <label class="field-label" for="reg-name">Nom complet</label>
+          <input class="input" type="text" id="reg-name" placeholder="Prénom Nom" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="reg-email">Email</label>
+          <input class="input" type="email" id="reg-email" placeholder="votre@email.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="reg-password">Mot de passe</label>
+          <input class="input" type="password" id="reg-password" placeholder="Min. 8 caractères" autocomplete="new-password" />
+          <p class="field-hint">Majuscule · Chiffre · Caractère spécial</p>
+        </div>
+
+        <div id="register-error" class="form-error" hidden></div>
+
+        <button class="btn-primary" id="btn-register" type="button">Créer mon compte</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ DROPDOWN PROFIL -->
+  <div class="profile-dropdown" id="profile-dropdown" hidden>
+    <div class="profile-info">
+      <div class="profile-avatar" id="profile-avatar"></div>
+      <div>
+        <div class="profile-name" id="profile-name"></div>
+        <div class="profile-email" id="profile-email"></div>
+      </div>
+    </div>
+    <hr class="dropdown-sep" />
+    <button class="dropdown-item" id="btn-history" type="button">📋 Mes résumés</button>
+    <button class="dropdown-item dropdown-item--danger" id="btn-logout" type="button">🚪 Se déconnecter</button>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
