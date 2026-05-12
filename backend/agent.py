@@ -141,9 +141,12 @@ def node_retrieve(state: AgentState) -> AgentState:
 # ── Nœud 3 : Classification Groq ────────────────────────────────────────────
 
 def node_classify(state: AgentState) -> AgentState:
-    """Classe le document (type, domaine, complexité) via Groq natif."""
+    """Classe le document via Groq natif."""
     if not os.getenv("GROQ_API_KEY"):
         return state
+
+    lang_map   = {"fr": "français", "en": "anglais", "ar": "arabe", "es": "espagnol"}
+    lang_label = lang_map.get(state["language"], "français")
 
     try:
         preview = " ".join(state["raw_text"].split()[:300])
@@ -152,15 +155,15 @@ def node_classify(state: AgentState) -> AgentState:
                 {
                     "role": "system",
                     "content": (
-                        "Tu es un classificateur de documents. "
-                        "Réponds UNIQUEMENT avec un objet JSON valide, "
-                        "sans markdown, sans texte autour."
+                        f"Tu es un classificateur de documents. "
+                        f"Réponds UNIQUEMENT avec un JSON valide, sans markdown. "
+                        f"Langue : {lang_label}."
                     ),
                 },
                 {
                     "role": "user",
                     "content": (
-                        "Analyse ce début de document et retourne :\n"
+                        "Analyse ce document et retourne :\n"
                         '{"document_type":"rapport|lecon|article|livre|email|autre",'
                         '"domain":"informatique|medecine|droit|economie|education|science|autre",'
                         '"complexity":"simple|intermediaire|complexe"}\n\n'
@@ -172,10 +175,8 @@ def node_classify(state: AgentState) -> AgentState:
         )
         meta = _parse_json(raw)
         return {**state, "groq_meta": meta}
-
     except Exception:
-        return state   # Ne jamais bloquer le pipeline
-
+        return state
 
 # ── Nœud 4 : Routage ────────────────────────────────────────────────────────
 
@@ -280,10 +281,15 @@ def node_summarize(state: AgentState) -> AgentState:
 
     inclusions_str = "\n- ".join(inclusions) if inclusions else "résumé général"
 
-    system_content = f"""Tu es un agent expert en analyse documentaire NLP (pipeline RAG + LangGraph).
+    system_content = f"""Tu es un agent expert en analyse documentaire NLP.
 
-RÈGLES STRICTES :
-1. Réponds UNIQUEMENT en {lang_label}.
+RÈGLE ABSOLUE NUMÉRO 1 — LANGUE :
+Tu DOIS répondre UNIQUEMENT en {lang_label}.
+Chaque mot du JSON doit être en {lang_label}.
+Si le document est en anglais mais que la langue demandée est le français, tu réponds en français.
+INTERDIT de répondre dans une autre langue que le {lang_label}.
+
+RÈGLES SUPPLÉMENTAIRES :
 2. Réponds UNIQUEMENT avec un objet JSON valide. Aucun texte avant ou après.
 3. N'invente aucune information absente du document.
 4. Niveau de détail : {state['detail_level']}/5.
@@ -291,12 +297,12 @@ RÈGLES STRICTES :
 
 FORMAT JSON OBLIGATOIRE :
 {{
-  "summary": "Résumé principal",
-  "key_points": ["Point 1", "Point 2", "Point 3"],
-  "document_type": "Type du document",
+  "summary": "Résumé principal en {lang_label}",
+  "key_points": ["Point 1 en {lang_label}", "Point 2 en {lang_label}"],
+  "document_type": "Type du document en {lang_label}",
   "sentiment": "positif|neutre|négatif",
   "complexity": "simple|intermédiaire|complexe",
-  "main_topics": ["Sujet 1", "Sujet 2"]
+  "main_topics": ["Sujet 1 en {lang_label}", "Sujet 2 en {lang_label}"]
 }}"""
 
     user_content = f"""Génère {style_label} de ce document.
