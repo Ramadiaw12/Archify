@@ -41,7 +41,6 @@ class Settings(BaseSettings):
     delete_after_processing: bool      = True
 
     # ── PostgreSQL ────────────────────────────────────────────────────────────
-    # Format : postgresql+asyncpg://user:password@host:port/dbname
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/docsummarizer"
 
     # ── JWT ───────────────────────────────────────────────────────────────────
