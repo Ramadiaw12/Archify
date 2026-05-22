@@ -53,7 +53,7 @@ const progressFill  = $("progress-fill");
 const progressMsg   = $("progress-msg");
 const alertArea     = $("alert-area");
 const btnGo         = $("btn-go");
-const resultPlaceholder = $("result-placeholder");
+const resultPlaceholder    = $("empty-state");
 const resultPanel   = $("result-panel");
 const resultBadges  = $("result-badges");
 const tabBody       = $("tab-body");
@@ -1210,3 +1210,160 @@ renderUser = function(user) {
 
 
 }); // DOMContentLoaded
+
+/* ════════════════════════════════════════
+   INLINE CHATBOT — Questions sur le document
+   ════════════════════════════════════════ */
+
+var inlineDocId   = null;
+var inlineChatId  = null;
+var inlineChatEl  = g("inline-chat");
+var icMessages    = g("inline-chat-messages");
+var icInput       = g("ic-input");
+var icSend        = g("ic-send");
+var icSuggestions = g("inline-chat-suggestions");
+
+/* Ouvrir le chatbot après génération du résumé */
+function openInlineChat(filename, docId) {
+  inlineDocId  = docId || null;
+  inlineChatId = null;
+
+  var nameEl = g("inline-chat-name");
+  if (nameEl) nameEl.textContent = filename || "Document";
+
+  // Vider les messages
+  if (icMessages) icMessages.innerHTML = "";
+
+  // Message de bienvenue
+  icAppendMessage("assistant",
+    "✦ Résumé généré ! Vous pouvez maintenant me poser des questions précises sur ce document. " +
+    "Je réponds uniquement à partir de son contenu — sans hallucination."
+  );
+
+  // Afficher les suggestions
+  if (icSuggestions) icSuggestions.hidden = false;
+
+  // Afficher le chatbot
+  if (inlineChatEl) inlineChatEl.hidden = false;
+}
+
+/* Ajouter un message */
+function icAppendMessage(role, content) {
+  if (!icMessages) return;
+
+  var div = document.createElement("div");
+  div.className = "ic-msg ic-msg--" + role;
+
+  var avatar = role === "user" ? "👤" : "✦";
+  var formatted = content
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n/g, "<br/>");
+
+  div.innerHTML =
+    "<div class='ic-avatar'>" + avatar + "</div>" +
+    "<div class='ic-bubble'><p>" + formatted + "</p></div>";
+
+  icMessages.appendChild(div);
+  icMessages.scrollTop = icMessages.scrollHeight;
+}
+
+function icShowTyping() {
+  if (!icMessages) return;
+  var t = document.createElement("div");
+  t.id = "ic-typing";
+  t.className = "ic-typing";
+  t.innerHTML = "<div class='ic-dot'></div><div class='ic-dot'></div><div class='ic-dot'></div>";
+  icMessages.appendChild(t);
+  icMessages.scrollTop = icMessages.scrollHeight;
+}
+
+function icHideTyping() {
+  var t = g("ic-typing");
+  if (t) t.remove();
+}
+
+/* Envoyer une question */
+async function icSendQuestion(question) {
+  if (!question.trim()) return;
+  if (!inlineDocId) {
+    icAppendMessage("assistant", "⚠️ Aucun document stocké. Connectez-vous pour activer les questions.");
+    return;
+  }
+
+  // Masquer suggestions après première question
+  if (icSuggestions) icSuggestions.hidden = true;
+
+  if (icInput)   icInput.value     = "";
+  if (icSend)    icSend.disabled   = true;
+
+  icAppendMessage("user", question);
+  icShowTyping();
+
+  try {
+    var langSel = g("sel-lang");
+    var lang = langSel ? langSel.value : "fr";
+
+    var res = await fetch("/api/documents/" + inlineDocId + "/ask", {
+      method: "POST",
+      headers: Object.assign({"Content-Type": "application/json"}, authHeaders()),
+      body: JSON.stringify({
+        question: question,
+        chat_id:  inlineChatId || null,
+        language: lang
+      })
+    });
+
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Erreur");
+
+    inlineChatId = data.chat_id;
+    icHideTyping();
+    icAppendMessage("assistant", data.answer);
+
+  } catch(err) {
+    icHideTyping();
+    icAppendMessage("assistant",
+      "⚠️ Impossible de répondre : " + err.message +
+      "\n\nConseil : connectez-vous pour activer les questions sur document."
+    );
+  } finally {
+    if (icSend) icSend.disabled = false;
+    if (icInput) icInput.focus();
+  }
+}
+
+/* Events */
+if (icInput) {
+  icInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      icSendQuestion(icInput.value.trim());
+    }
+  });
+}
+
+if (icSend) {
+  icSend.addEventListener("click", function() {
+    if (icInput) icSendQuestion(icInput.value.trim());
+  });
+}
+
+if (icSuggestions) {
+  icSuggestions.querySelectorAll(".ic-suggestion").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      icSendQuestion(btn.dataset.q);
+    });
+  });
+}
+
+/* Hook renderResult — ouvrir le chat après génération */
+var _baseRenderResult = renderResult;
+renderResult = function(data) {
+  _baseRenderResult(data);
+  // Ouvrir le chatbot avec le doc_id si disponible
+  if (data && data.filename) {
+    var docId = data.doc_id || data.document_id || null;
+    openInlineChat(data.filename, docId);
+  }
+};

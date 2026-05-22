@@ -14,7 +14,7 @@
   <header class="header">
     <div class="container header-inner">
 
-      <a class="logo" href="/" onclick="window.location.href='/';return false;">
+      <a class="logo" href="/">
         <div class="logo-mark">DS</div>
         <span class="logo-name">Doc<span>Summarizer</span></span>
       </a>
@@ -38,17 +38,6 @@
 
   <!-- ══════════════════════════════════════ PAGE RÉSUMÉ -->
   <div id="page-summarize">
-
-  <!-- GUIDE BAR -->
-  <div class="guide-bar" id="guide-bar">
-    <div class="guide-step active" id="gs-1"><div class="guide-step-circle">1</div><div class="guide-step-label">Document</div></div>
-    <div class="guide-line" id="gl-1"></div>
-    <div class="guide-step" id="gs-2"><div class="guide-step-circle">2</div><div class="guide-step-label">Options</div></div>
-    <div class="guide-line" id="gl-2"></div>
-    <div class="guide-step" id="gs-3"><div class="guide-step-circle">3</div><div class="guide-step-label">Analyse</div></div>
-    <div class="guide-line" id="gl-3"></div>
-    <div class="guide-step" id="gs-4"><div class="guide-step-circle">4</div><div class="guide-step-label">Résultat</div></div>
-  </div>
 
     <section class="hero">
       <div class="container hero-inner">
@@ -199,7 +188,7 @@
           <div class="tab-body" id="tab-body"></div>
         </div>
 
-        <!-- Placeholder animé — visible avant génération -->
+        <!-- Placeholder — avant génération -->
         <div class="result-placeholder" id="result-placeholder">
           <div class="rp-inner">
             <div class="rp-icon">✦</div>
@@ -212,6 +201,41 @@
               <div class="rp-arrow">→</div>
               <div class="rp-step"><span>3</span>Analysez</div>
             </div>
+          </div>
+        </div>
+
+        <!-- Chatbot intégré — visible après génération du résumé -->
+        <div class="inline-chat" id="inline-chat" hidden>
+          <div class="inline-chat-header">
+            <div class="inline-chat-doc" id="inline-chat-doc">
+              <span class="ic-icon">📄</span>
+              <span class="ic-name" id="inline-chat-name">Document</span>
+            </div>
+            <div class="inline-chat-badge">💬 Questions sur ce document</div>
+          </div>
+
+          <div class="inline-chat-messages" id="inline-chat-messages">
+            <!-- Messages injectés par JS -->
+          </div>
+
+          <div class="inline-chat-suggestions" id="inline-chat-suggestions">
+            <button class="ic-suggestion" type="button" data-q="Quel est le sujet principal de ce document ?">Sujet principal</button>
+            <button class="ic-suggestion" type="button" data-q="Quelles sont les conclusions ?">Conclusions</button>
+            <button class="ic-suggestion" type="button" data-q="Quels sont les points les plus importants ?">Points clés</button>
+            <button class="ic-suggestion" type="button" data-q="Y a-t-il des chiffres ou statistiques importants ?">Chiffres</button>
+          </div>
+
+          <div class="inline-chat-input-bar">
+            <input
+              class="ic-input"
+              id="ic-input"
+              type="text"
+              placeholder="Posez une question sur ce document..."
+              autocomplete="off"
+            />
+            <button class="ic-send" id="ic-send" type="button" title="Envoyer">
+              <span id="ic-send-icon">→</span>
+            </button>
           </div>
         </div>
 

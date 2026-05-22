@@ -184,6 +184,24 @@ async def summarize(
             "read_time_min":       max(1, round(parsed.word_count / 200)),
         }
 
+        # Stocker le document pour le chat (si connecté)
+        doc_id = None
+        if current_user:
+            try:
+                from document_service import store_document as _store_doc
+                doc_row = await _store_doc(
+                    db         = db,
+                    user_id    = current_user.id,
+                    filename   = file.filename or "",
+                    file_type  = parsed.file_type,
+                    raw_text   = parsed.raw_text,
+                    word_count = parsed.word_count,
+                    page_count = parsed.page_count,
+                )
+                doc_id = doc_row.id
+            except Exception as e:
+                logger.warning(f"Stockage document échoué : {e}")
+
         # Sauvegarder si connecté
         summary_id = None
         if current_user:
@@ -212,6 +230,7 @@ async def summarize(
         return {
             "success":       True,
             "summary_id":    summary_id,
+            "doc_id":        doc_id,
             "filename":      file.filename,
             "file_type":     parsed.file_type,
             "summary":       result["summary"],
