@@ -391,26 +391,59 @@ regPassword.addEventListener("keydown",   e => { if (e.key === "Enter") btnRegis
    7. HISTORIQUE
 ══════════════════════════════════════════════════════════════ */
 
+async function apiSummaryById(id) {
+  const res = await fetch("/api/summaries/" + id, { headers: authHeaders() });
+  if (!res.ok) return null;
+  return res.json();
+}
+
 async function loadHistory() {
+  if (!historySection || !historyList) return;
   historySection.hidden = false;
-  historyList.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Chargement…</p>`;
+  historyList.innerHTML = "<p style='color:var(--text-muted);font-size:13px;'>Chargement...</p>";
 
   const data = await apiSummaries(1);
-  if (!data || !data.items.length) {
-    historyList.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Aucun résumé sauvegardé.</p>`;
+  if (!data || !data.items || !data.items.length) {
+    historyList.innerHTML = "<p style='color:var(--text-muted);font-size:13px;text-align:center;padding:1rem 0;'>Aucun r\u00e9sum\u00e9 sauvegard\u00e9.<br/>Analysez votre premier document !</p>";
     return;
   }
 
-  historyList.innerHTML = data.items.map(s => `
-    <div class="history-item">
-      <div class="history-item-head">
-        <span class="history-badge">${esc(s.file_type)}</span>
-        <span class="history-date">${new Date(s.created_at).toLocaleDateString("fr-FR")}</span>
-      </div>
-      <div class="history-filename">${esc(s.filename)}</div>
-      <div class="history-preview">${esc(s.summary)}</div>
-    </div>
-  `).join("");
+  var html = "";
+  data.items.forEach(function(s) {
+    html += "<div class='history-item' data-id='" + esc(s.id) + "'>";
+    html += "<div class='history-item-head'>";
+    html += "<span class='history-badge'>" + esc(s.file_type) + "</span>";
+    html += "<span class='history-date'>" + new Date(s.created_at).toLocaleDateString("fr-FR") + "</span>";
+    html += "</div>";
+    html += "<div class='history-filename'>\ud83d\udcc4 " + esc(s.filename) + "</div>";
+    html += "<div class='history-preview'>" + esc(s.summary) + "</div>";
+    html += "<div class='history-cta'>Voir le r\u00e9sum\u00e9 complet \u2192</div>";
+    html += "</div>";
+  });
+  historyList.innerHTML = html;
+
+  historyList.querySelectorAll(".history-item").forEach(function(item) {
+    item.addEventListener("click", async function() {
+      var id = item.dataset.id;
+      if (!id) return;
+      historyList.querySelectorAll(".history-item").forEach(function(el) {
+        el.classList.remove("history-item--active");
+      });
+      item.classList.add("history-item--active");
+      try {
+        var res = await apiSummaryById(id);
+        if (!res) throw new Error("Introuvable");
+        state.result = res;
+        state.activeTab = "summary";
+        renderResult(res);
+        var col = document.querySelector(".result-column");
+        if (col) col.scrollIntoView({ behavior: "smooth", block: "start" });
+        showToast("R\u00e9sum\u00e9 charg\u00e9 : " + res.filename, "success", 2500);
+      } catch(e) {
+        showToast("Impossible de charger ce r\u00e9sum\u00e9", "error", 3000);
+      }
+    });
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════

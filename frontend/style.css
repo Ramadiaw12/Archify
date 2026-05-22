@@ -1449,3 +1449,41 @@ body {
   color: var(--text-muted);
   margin-right: 4px;
 }
+
+/* ═══════════════════════════════════════ LAYOUT FIX FINAL */
+.main-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 2.5rem !important;
+  padding: 2rem 0 4rem !important;
+  align-items: start !important;
+}
+
+.form-column {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.result-column {
+  min-width: 0 !important;
+  width: 100% !important;
+  position: sticky !important;
+  top: 76px !important;
+}
+
+.container {
+  max-width: 1300px !important;
+  padding: 0 2.5rem !important;
+}
+
+/* Colonne droite — hauteur minimum égale à la gauche */
+.empty-state,
+.result-panel {
+  min-height: 560px !important;
+  width: 100% !important;
+}
+
+@media (max-width: 900px) {
+  .main-layout { grid-template-columns: 1fr !important; }
+  .result-column { position: static !important; }
+}
