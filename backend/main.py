@@ -282,13 +282,16 @@ async def get_summaries(
         "per_page": per_page,
         "pages":    max(1, -(-total // per_page)),
     }
+
+
+
 @app.get("/api/summaries/{summary_id}", tags=["Agent"])
-async def get_summary(
+async def get_summary_by_id(
     summary_id:   str,
     current_user: UserPublic = Depends(require_auth),
     db:           AsyncSession = Depends(get_session),
 ):
-    from sqlalchemy import select
+    """Retourne un résumé complet par son ID."""
     row = await db.execute(
         select(Summary)
         .where(Summary.id == summary_id)
@@ -303,17 +306,17 @@ async def get_summary(
         "filename":      s.filename,
         "file_type":     s.file_type,
         "summary":       s.summary,
-        "key_points":    s.key_points,
+        "key_points":    s.key_points   or [],
         "document_type": s.document_type,
         "sentiment":     s.sentiment,
         "complexity":    s.complexity,
-        "main_topics":   s.main_topics,
-        "stats":         s.stats,
+        "main_topics":   s.main_topics  or [],
+        "stats":         s.stats        or {},
         "pipeline": {
-            "route":    s.stats.get("route", "-"),
+            "route":    "-",
             "language": s.language,
             "model":    settings.groq_model,
-            "provider": "Groq",
+            "provider": "DocSummarizer",
         },
     }
 

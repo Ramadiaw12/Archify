@@ -1263,3 +1263,38 @@ body {
   .hero        { padding: 2rem 0 1.5rem; }
   .container   { padding: 0 1rem; }
 }
+
+/* ── Historique cliquable ────────────────────────────────── */
+.history-item--active {
+  border-color: var(--red-600) !important;
+  background: var(--red-50) !important;
+  box-shadow: 0 0 0 3px rgba(166,50,38,.12);
+}
+
+.history-cta {
+  font-size: 11px;
+  font-family: var(--f-mono);
+  color: var(--red-600);
+  margin-top: 6px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.history-item:hover .history-cta { opacity: 1; }
+.history-item--active .history-cta { opacity: 1; }
+
+/* ── Barre de progression simplifiée ────────────────────── */
+#progress-area {
+  margin: 0 0 1rem 0;
+}
+
+.progress-msg {
+  font-size: 13px;
+  font-family: var(--f-body);
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}

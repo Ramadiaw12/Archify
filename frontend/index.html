@@ -20,9 +20,9 @@
       </div>
 
       <div class="header-tags">
-        <span class="tag tag-blue">RAG</span>
-        <span class="tag tag-dark">LangGraph</span>
-        <span class="tag tag-green">Groq AI</span>
+        <span class="tag tag-green">✦ IA</span>
+        <span class="tag tag-dark">Multilingue</span>
+        <span class="tag tag-blue">Sécurisé</span>
       </div>
 
       <!-- Auth zone -->
@@ -36,7 +36,7 @@
   <!-- ══════════════════════════════════════ HERO -->
   <section class="hero">
     <div class="container hero-inner">
-      <div class="hero-badge">Powered by Groq · LangGraph · RAG</div>
+      <div class="hero-badge">Résumé intelligent · Multilingue · Sécurisé</div>
       <h1 class="hero-title">
         Résumez vos documents<br />
         <em>en quelques secondes</em>
@@ -133,30 +133,16 @@
         </fieldset>
       </section>
 
-      <!-- ÉTAPE 3 — Pipeline -->
+      <!-- ÉTAPE 3 — Lancer -->
       <section class="card">
         <div class="card-head">
           <span class="step-num">03</span>
-          <h2 class="card-title">Pipeline de traitement</h2>
-        </div>
-
-        <div class="pipeline" id="pipeline">
-          <div class="pipe-step" id="pipe-0"><div class="pipe-icon">📄</div><div class="pipe-lbl">Extraction</div></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step" id="pipe-1"><div class="pipe-icon">🧩</div><div class="pipe-lbl">RAG</div></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step" id="pipe-2"><div class="pipe-icon">🔢</div><div class="pipe-lbl">Embed</div></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step" id="pipe-3"><div class="pipe-icon">⚡</div><div class="pipe-lbl">Groq</div></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step" id="pipe-4"><div class="pipe-icon">🌿</div><div class="pipe-lbl">Graph</div></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step" id="pipe-5"><div class="pipe-icon">✅</div><div class="pipe-lbl">Résumé</div></div>
+          <h2 class="card-title">Générer le résumé</h2>
         </div>
 
         <div id="progress-area" hidden>
           <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-          <p class="progress-msg" id="progress-msg">Initialisation…</p>
+          <p class="progress-msg" id="progress-msg">Analyse en cours…</p>
         </div>
 
         <div id="alert-area" role="alert"></div>
@@ -172,9 +158,7 @@
           <span class="step-num">📋</span>
           <h2 class="card-title">Mes résumés récents</h2>
         </div>
-        <div id="history-list">
-          <p style="color:var(--text-muted);font-size:13px;">Chargement…</p>
-        </div>
+        <div id="history-list"></div>
       </section>
 
     </div>
@@ -199,7 +183,6 @@
           <button class="tab active" role="tab" data-tab="summary">Résumé</button>
           <button class="tab" role="tab" data-tab="keypoints">Points clés</button>
           <button class="tab" role="tab" data-tab="stats">Statistiques</button>
-          <button class="tab" role="tab" data-tab="pipeline">Pipeline</button>
         </div>
 
         <div class="tab-body" id="tab-body"></div>
@@ -212,7 +195,7 @@
   <footer class="footer">
     <div class="container footer-inner">
       <p class="footer-stack">
-        Pipeline NLP : <strong>RAG</strong> · <strong>LangGraph</strong> · <strong>Groq AI</strong> · <strong>FastAPI</strong>
+        <strong>DocSummarizer</strong> · Résumé intelligent de documents · Multilingue
       </p>
       <p class="footer-privacy">🔒 Aucun document conservé — suppression immédiate après traitement</p>
     </div>

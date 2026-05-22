@@ -392,58 +392,25 @@ regPassword.addEventListener("keydown",   e => { if (e.key === "Enter") btnRegis
 ══════════════════════════════════════════════════════════════ */
 
 async function loadHistory() {
-  if (!historySection || !historyList) return;
   historySection.hidden = false;
-  historyList.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Chargement...</p>';
-  var data = await apiSummaries();
-  if (!data || !data.items || !data.items.length) {
-    historyList.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Aucun resume sauvegarde.</p>';
+  historyList.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Chargement…</p>`;
+
+  const data = await apiSummaries(1);
+  if (!data || !data.items.length) {
+    historyList.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Aucun résumé sauvegardé.</p>`;
     return;
   }
-  historyList.innerHTML = data.items.map(function(s) {
-    return '<div class="history-item" data-id="' + s.id + '">' +
-      '<div class="history-item-head">' +
-      '<span class="history-badge">' + esc(s.file_type) + '</span>' +
-      '<span class="history-date">' + new Date(s.created_at).toLocaleDateString("fr-FR") + '</span>' +
-      '</div>' +
-      '<div class="history-filename">' + esc(s.filename) + '</div>' +
-      '<div class="history-preview">' + esc(s.summary) + '</div>' +
-      '</div>';
-  }).join("");
 
-  // Clic sur un item → afficher le résumé complet
-  historyList.querySelectorAll(".history-item").forEach(function(item) {
-    item.addEventListener("click", async function() {
-      var id = item.dataset.id;
-      if (!id) return;
-
-      // Indiquer le chargement
-      historyList.querySelectorAll(".history-item").forEach(function(el) {
-        el.style.opacity = "0.5";
-      });
-      item.style.opacity = "1";
-      item.style.borderColor = "var(--red-600)";
-
-      try {
-        var res = await fetch("/api/summaries/" + id, { headers: authHeaders() });
-        if (!res.ok) throw new Error("Erreur chargement");
-        var data = await res.json();
-        state.result = data;
-        renderResult(data);
-        // Scroll vers le résultat
-        var resultCol = document.querySelector(".result-column");
-        if (resultCol) resultCol.scrollIntoView({ behavior: "smooth", block: "start" });
-        showToast("Résumé chargé : " + data.filename, "success", 2500);
-      } catch(err) {
-        showToast("Erreur lors du chargement", "error", 3000);
-      } finally {
-        historyList.querySelectorAll(".history-item").forEach(function(el) {
-          el.style.opacity = "1";
-          el.style.borderColor = "";
-        });
-      }
-    });
-  });
+  historyList.innerHTML = data.items.map(s => `
+    <div class="history-item">
+      <div class="history-item-head">
+        <span class="history-badge">${esc(s.file_type)}</span>
+        <span class="history-date">${new Date(s.created_at).toLocaleDateString("fr-FR")}</span>
+      </div>
+      <div class="history-filename">${esc(s.filename)}</div>
+      <div class="history-preview">${esc(s.summary)}</div>
+    </div>
+  `).join("");
 }
 
 /* ══════════════════════════════════════════════════════════════
