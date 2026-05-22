@@ -1755,3 +1755,139 @@ body {
   transform: rotate(-5deg) scale(1.1);
   box-shadow: 0 4px 12px rgba(166,50,38,0.4);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT FIX — Colonnes égales côte à côte
+   ═══════════════════════════════════════════════════════════ */
+
+.main-layout {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 2rem !important;
+  padding-top: 2rem !important;
+  padding-bottom: 4rem !important;
+  align-items: stretch !important;
+}
+
+.form-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.form-column .card { flex-shrink: 0; }
+
+.result-column {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.empty-state {
+  flex: 1;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+}
+
+.result-panel .tab-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .result-column {
+    position: static;
+    max-height: none;
+  }
+}
+/* ── LAYOUT FINAL FIX ─────────────────────────────────────── */
+body { overflow-x: hidden; }
+
+.container { 
+  max-width: 100% !important;
+  padding: 0 1rem !important;
+}
+
+.main-layout {
+  grid-template-columns: 1fr 1fr !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.result-column {
+  position: static !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+.empty-state, .result-panel {
+  min-height: 400px !important;
+  width: 100% !important;
+}
+
+/* ── LAYOUT FINAL ─────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body { overflow-x: hidden; }
+
+.container {
+  max-width: 1400px !important;
+  padding: 0 2rem !important;
+  margin: 0 auto !important;
+}
+
+.main-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 1.5rem !important;
+  align-items: start !important;
+  width: 100% !important;
+}
+
+.form-column,
+.result-column {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+.result-column {
+  position: sticky !important;
+  top: 76px !important;
+}
+
+.empty-state {
+  min-height: 600px !important;
+}
+
+.result-panel {
+  min-height: 600px !important;
+}
+
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .result-column {
+    position: static !important;
+  }
+}
