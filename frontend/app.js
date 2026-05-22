@@ -1357,13 +1357,38 @@ if (icSuggestions) {
   });
 }
 
-/* Hook renderResult — ouvrir le chat après génération */
+/* Hook renderResult — activer le chat intégré après génération */
 var _baseRenderResult = renderResult;
 renderResult = function(data) {
   _baseRenderResult(data);
-  // Ouvrir le chatbot avec le doc_id si disponible
   if (data && data.filename) {
     var docId = data.doc_id || data.document_id || null;
-    openInlineChat(data.filename, docId);
+    inlineDocId  = docId;
+    inlineChatId = null;
+    // Message de bienvenue dans le chat intégré
+    var msgs = g("inline-chat-messages");
+    if (msgs) {
+      msgs.innerHTML = "";
+      icAppendMessage("assistant",
+        "Résumé généré ! Posez-moi des questions précises sur **" + data.filename + "**. " +
+        "Je réponds uniquement à partir du contenu de ce document."
+      );
+    }
+    var sugg = g("inline-chat-suggestions");
+    if (sugg) sugg.hidden = false;
   }
 };
+
+/* Dark mode toggle */
+var btnTheme = g("btn-theme-toggle");
+var isDark   = localStorage.getItem("dark-mode") === "1";
+if (isDark) { document.body.classList.add("dark"); if (btnTheme) btnTheme.textContent = "☀️"; }
+
+if (btnTheme) {
+  btnTheme.addEventListener("click", function() {
+    isDark = !isDark;
+    document.body.classList.toggle("dark", isDark);
+    btnTheme.textContent = isDark ? "☀️" : "🌙";
+    localStorage.setItem("dark-mode", isDark ? "1" : "0");
+  });
+}

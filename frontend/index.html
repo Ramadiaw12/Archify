@@ -171,21 +171,44 @@
 
       </div>
 
-      <!-- ── COLONNE DROITE — Résultats -->
+      <!-- ── COLONNE DROITE — Résultats + Chat -->
       <div class="result-column">
 
-        <!-- Panneau résultat — caché par défaut -->
+        <!-- Panneau unifié : résumé + chatbot -->
         <div class="result-panel" id="result-panel" hidden>
+          <!-- En-tête avec badges et actions -->
           <div class="result-head">
             <div class="result-badges" id="result-badges"></div>
-            <button class="btn-copy" id="btn-copy" type="button">📋 Copier</button>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn-theme-toggle" id="btn-theme-toggle" type="button" title="Changer le thème">🌙</button>
+              <button class="btn-copy" id="btn-copy" type="button">📋 Copier</button>
+            </div>
           </div>
+          <!-- Onglets résumé -->
           <div class="tabs" role="tablist">
             <button class="tab active" role="tab" data-tab="summary">Résumé</button>
             <button class="tab" role="tab" data-tab="keypoints">Points clés</button>
             <button class="tab" role="tab" data-tab="stats">Statistiques</button>
           </div>
           <div class="tab-body" id="tab-body"></div>
+          <!-- Séparateur chat -->
+          <div class="result-chat-divider">
+            <span>💬 Questions sur ce document</span>
+          </div>
+          <!-- Zone messages chat -->
+          <div class="inline-chat-messages" id="inline-chat-messages"></div>
+          <!-- Suggestions -->
+          <div class="inline-chat-suggestions" id="inline-chat-suggestions">
+            <button class="ic-suggestion" type="button" data-q="Quel est le sujet principal ?">Sujet principal</button>
+            <button class="ic-suggestion" type="button" data-q="Quelles sont les conclusions ?">Conclusions</button>
+            <button class="ic-suggestion" type="button" data-q="Quels sont les chiffres importants ?">Chiffres clés</button>
+            <button class="ic-suggestion" type="button" data-q="Résume en 3 points clés.">Résumé rapide</button>
+          </div>
+          <!-- Input chat -->
+          <div class="inline-chat-input-bar">
+            <input class="ic-input" id="ic-input" type="text" placeholder="Posez une question sur ce document..." autocomplete="off" />
+            <button class="ic-send" id="ic-send" type="button">→</button>
+          </div>
         </div>
 
         <!-- Placeholder — avant génération -->
@@ -204,39 +227,6 @@
           </div>
         </div>
 
-        <!-- Chatbot intégré — visible après génération du résumé -->
-        <div class="inline-chat" id="inline-chat" hidden>
-          <div class="inline-chat-header">
-            <div class="inline-chat-doc" id="inline-chat-doc">
-              <span class="ic-icon">📄</span>
-              <span class="ic-name" id="inline-chat-name">Document</span>
-            </div>
-            <div class="inline-chat-badge">💬 Questions sur ce document</div>
-          </div>
-
-          <div class="inline-chat-messages" id="inline-chat-messages">
-            <!-- Messages injectés par JS -->
-          </div>
-
-          <div class="inline-chat-suggestions" id="inline-chat-suggestions">
-            <button class="ic-suggestion" type="button" data-q="Quel est le sujet principal de ce document ?">Sujet principal</button>
-            <button class="ic-suggestion" type="button" data-q="Quelles sont les conclusions ?">Conclusions</button>
-            <button class="ic-suggestion" type="button" data-q="Quels sont les points les plus importants ?">Points clés</button>
-            <button class="ic-suggestion" type="button" data-q="Y a-t-il des chiffres ou statistiques importants ?">Chiffres</button>
-          </div>
-
-          <div class="inline-chat-input-bar">
-            <input
-              class="ic-input"
-              id="ic-input"
-              type="text"
-              placeholder="Posez une question sur ce document..."
-              autocomplete="off"
-            />
-            <button class="ic-send" id="ic-send" type="button" title="Envoyer">
-              <span id="ic-send-icon">→</span>
-            </button>
-          </div>
         </div>
 
       </div>

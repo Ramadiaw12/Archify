@@ -837,3 +837,73 @@ body {
 }
 .ic-send:hover:not(:disabled) { background: var(--red-700); transform: scale(1.05); }
 .ic-send:disabled { background: var(--sand-300); cursor: not-allowed; transform: none; }
+
+/* ════════════════════════════════════════ DARK MODE */
+body.dark {
+  --bg:       #1A1008;
+  --bg-white: #241508;
+  --sand-100: #2A1A0E;
+  --sand-200: #3D2510;
+  --sand-300: #5C3A1E;
+  --sand-400: #7A5030;
+  --sand-500: #A07850;
+  --text-primary:   #F5EFE6;
+  --text-secondary: #D4B896;
+  --text-muted:     #A07850;
+}
+
+body.dark .header    { background: #1A1008; border-color: #3D2510; }
+body.dark .card      { background: #241508; border-color: #3D2510; }
+body.dark .result-panel { background: #241508; }
+body.dark .tabs      { background: #1A1008; }
+body.dark .tab-body  { background: #241508; }
+body.dark .select    { background: #241508; color: var(--text-primary); border-color: #3D2510; }
+body.dark .input     { background: #241508; color: var(--text-primary); border-color: #3D2510; }
+body.dark .ic-input  { background: #1A1008; color: var(--text-primary); border-color: #3D2510; }
+body.dark .inline-chat-input-bar { background: #241508; border-color: #3D2510; }
+body.dark .kp-item   { background: #1A1008; border-color: #3D2510; }
+body.dark .stat-box  { background: #1A1008; border-color: #3D2510; }
+body.dark .history-item { background: #1A1008; border-color: #3D2510; }
+body.dark .footer    { background: #0D0804; }
+
+.btn-theme-toggle {
+  background: none;
+  border: 1px solid rgba(245,239,230,.2);
+  border-radius: var(--r-sm);
+  color: var(--sand-300);
+  font-size: 14px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-theme-toggle:hover { background: rgba(245,239,230,.1); }
+
+/* Séparateur chat dans le résultat */
+.result-chat-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: .75rem 1.25rem;
+  background: var(--sand-100);
+  border-top: 1px solid var(--sand-200);
+  border-bottom: 1px solid var(--sand-200);
+  flex-shrink: 0;
+}
+
+.result-chat-divider span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--f-mono);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.result-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.tab-body { overflow-y: visible; min-height: 150px; }
