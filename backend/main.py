@@ -21,7 +21,11 @@ from config import settings
 from document_parser import DocumentParser
 from agent import run_agent
 from db.database import create_tables, close_db, get_session
-from db.models import Summary, UserPublic
+from db.models import Summary, Document, UserPublic
+from document_service import (
+    store_document, get_documents, get_document,
+    delete_document, ask_document, get_chat_history, get_document_chats
+)
 from auth.router import router as auth_router
 from middleware.auth_dep import require_auth, optional_auth
 from middleware.rate_limit import rate_limit_summarize
@@ -319,6 +323,117 @@ async def get_summary_by_id(
             "provider": "DocSummarizer",
         },
     }
+
+# ═══════════════════════════════════════════════════════════
+# DOCUMENTS — Upload, Liste, Chat
+# ═══════════════════════════════════════════════════════════
+
+@app.post("/api/documents/upload", tags=["Documents"])
+async def upload_document(
+    file:         UploadFile = File(...),
+    current_user: UserPublic = Depends(require_auth),
+    db:           AsyncSession = Depends(get_session),
+):
+    """Upload un document, extrait le texte, stocke en DB."""
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in settings.allowed_extensions:
+        raise HTTPException(status_code=415, detail=f"Format non supporté : {ext}")
+
+    content_bytes = await file.read()
+    if len(content_bytes) > settings.max_file_size_mb * 1024 * 1024:
+        raise HTTPException(status_code=413, detail=f"Fichier trop volumineux.")
+
+    tmp_path = os.path.join(settings.upload_dir, f"{uuid.uuid4().hex}{ext}")
+    try:
+        with open(tmp_path, "wb") as f_out:
+            f_out.write(content_bytes)
+        parsed = _parser.parse(tmp_path, original_filename=file.filename or "")
+        if not parsed.raw_text.strip():
+            raise HTTPException(status_code=422, detail="Impossible d'extraire du texte.")
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+    doc = await store_document(
+        db         = db,
+        user_id    = current_user.id,
+        filename   = file.filename or "",
+        file_type  = parsed.file_type,
+        raw_text   = parsed.raw_text,
+        word_count = parsed.word_count,
+        page_count = parsed.page_count,
+    )
+
+    return {
+        "id":         doc.id,
+        "filename":   doc.filename,
+        "file_type":  doc.file_type,
+        "word_count": doc.word_count,
+        "page_count": doc.page_count,
+        "message":    "Document stocké. Vous pouvez maintenant poser des questions.",
+    }
+
+
+@app.get("/api/documents", tags=["Documents"])
+async def list_documents(
+    page:         int = 1,
+    per_page:     int = 20,
+    current_user: UserPublic = Depends(require_auth),
+    db:           AsyncSession = Depends(get_session),
+):
+    """Liste les documents de l'utilisateur connecté."""
+    return await get_documents(db, current_user.id, page, per_page)
+
+
+@app.delete("/api/documents/{document_id}", tags=["Documents"])
+async def remove_document(
+    document_id:  str,
+    current_user: UserPublic = Depends(require_auth),
+    db:           AsyncSession = Depends(get_session),
+):
+    """Supprime un document et tout son historique."""
+    await delete_document(db, document_id, current_user.id)
+    return {"message": "Document supprimé."}
+
+
+@app.post("/api/documents/{document_id}/ask", tags=["Documents"])
+async def ask(
+    document_id:  str,
+    request:      Request,
+    current_user: UserPublic = Depends(require_auth),
+    db:           AsyncSession = Depends(get_session),
+):
+    """Pose une question sur un document stocké."""
+    body     = await request.json()
+    question = body.get("question", "").strip()
+    chat_id  = body.get("chat_id")
+    language = body.get("language", "fr")
+
+    if not question:
+        raise HTTPException(status_code=422, detail="Question vide.")
+
+    return await ask_document(db, document_id, current_user.id, question, chat_id, language)
+
+
+@app.get("/api/documents/{document_id}/chats", tags=["Documents"])
+async def list_chats(
+    document_id:  str,
+    current_user: UserPublic = Depends(require_auth),
+    db:           AsyncSession = Depends(get_session),
+):
+    """Liste tous les chats d'un document."""
+    return await get_document_chats(db, document_id, current_user.id)
+
+
+@app.get("/api/chats/{chat_id}", tags=["Documents"])
+async def get_chat(
+    chat_id:      str,
+    current_user: UserPublic = Depends(require_auth),
+    db:           AsyncSession = Depends(get_session),
+):
+    """Récupère l'historique complet d'un chat."""
+    return await get_chat_history(db, chat_id, current_user.id)
+
 
 if __name__ == "__main__":
     import uvicorn

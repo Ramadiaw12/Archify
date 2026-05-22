@@ -25,6 +25,16 @@
         <span class="tag tag-blue">Sécurisé</span>
       </div>
 
+      <!-- Navigation onglets -->
+      <nav class="header-nav" id="header-nav" hidden>
+        <button class="nav-tab active" data-page="summarize" type="button">
+          ✦ Résumé
+        </button>
+        <button class="nav-tab" data-page="documents" type="button">
+          📁 Mes Documents
+        </button>
+      </nav>
+
       <!-- Auth zone -->
       <div class="header-auth" id="header-auth">
         <!-- Injecté par JS selon l'état de connexion -->
@@ -165,6 +175,40 @@
 
     <!-- ── COLONNE DROITE — Résultats -->
     <div class="result-column">
+
+      <div class="empty-state" id="empty-state">
+        <div class="empty-state-content">
+          <div class="empty-feature">
+            <span class="ef-icon">📄</span>
+            <div>
+              <div class="ef-title">PDF, Word, TXT, MD, RTF</div>
+              <div class="ef-sub">Tous vos formats acceptés</div>
+            </div>
+          </div>
+          <div class="empty-feature">
+            <span class="ef-icon">🌍</span>
+            <div>
+              <div class="ef-title">Français · English · العربية · Español</div>
+              <div class="ef-sub">Résumé dans la langue de votre choix</div>
+            </div>
+          </div>
+          <div class="empty-feature">
+            <span class="ef-icon">🎯</span>
+            <div>
+              <div class="ef-title">5 styles de résumé</div>
+              <div class="ef-sub">Concis · Détaillé · Points clés · Exécutif · Pédagogique</div>
+            </div>
+          </div>
+          <div class="empty-feature">
+            <span class="ef-icon">💾</span>
+            <div>
+              <div class="ef-title">Historique sauvegardé</div>
+              <div class="ef-sub">Retrouvez vos résumés à tout moment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="result-panel" id="result-panel" hidden>
 
         <div class="result-head">
@@ -289,6 +333,111 @@
     <hr class="dropdown-sep" />
     <button class="dropdown-item" id="btn-history" type="button">📋 Mes résumés</button>
     <button class="dropdown-item dropdown-item--danger" id="btn-logout" type="button">🚪 Se déconnecter</button>
+  </div>
+
+  <!-- ══════════════════════════════════════ PAGE DOCUMENTS -->
+  <div id="page-documents" hidden>
+
+    <section class="hero hero--compact">
+      <div class="container hero-inner">
+        <div class="hero-badge">Vos documents · Questions intelligentes</div>
+        <h1 class="hero-title" style="font-size:clamp(22px,3vw,34px)">
+          Interrogez vos <em>documents</em>
+        </h1>
+        <p class="hero-sub" style="font-size:14px;">
+          Uploadez un document, posez des questions, obtenez des réponses précises.
+        </p>
+      </div>
+    </section>
+
+    <main class="container docs-layout">
+
+      <!-- ── COLONNE GAUCHE : liste documents -->
+      <aside class="docs-sidebar">
+
+        <!-- Upload -->
+        <div class="docs-upload-zone" id="docs-upload-zone">
+          <input type="file" id="docs-file-input" accept=".pdf,.doc,.docx,.txt,.md,.rtf" multiple />
+          <div class="duz-icon">⬆</div>
+          <div class="duz-title">Ajouter un document</div>
+          <div class="duz-sub">PDF · DOCX · TXT · MD · RTF</div>
+        </div>
+
+        <div class="docs-upload-progress" id="docs-upload-progress" hidden>
+          <div class="dup-bar"><div class="dup-fill" id="dup-fill"></div></div>
+          <div class="dup-msg" id="dup-msg">Upload en cours...</div>
+        </div>
+
+        <!-- Liste -->
+        <div class="docs-list" id="docs-list">
+          <div class="docs-list-empty" id="docs-list-empty">
+            <div style="font-size:32px;opacity:.3;">📁</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:8px;">Aucun document</div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- ── COLONNE DROITE : chat -->
+      <div class="docs-chat" id="docs-chat">
+
+        <!-- Etat vide -->
+        <div class="chat-empty" id="chat-empty">
+          <div class="chat-empty-icon">💬</div>
+          <div class="chat-empty-title">Sélectionnez un document</div>
+          <div class="chat-empty-sub">Cliquez sur un document pour commencer à poser des questions</div>
+        </div>
+
+        <!-- Chat actif -->
+        <div class="chat-active" id="chat-active" hidden>
+
+          <!-- Header document actif -->
+          <div class="chat-doc-header" id="chat-doc-header">
+            <div class="chat-doc-info">
+              <span class="chat-doc-icon">📄</span>
+              <div>
+                <div class="chat-doc-name" id="chat-doc-name"></div>
+                <div class="chat-doc-meta" id="chat-doc-meta"></div>
+              </div>
+            </div>
+            <button class="chat-doc-close" id="chat-doc-close" type="button" title="Fermer">✕</button>
+          </div>
+
+          <!-- Messages -->
+          <div class="chat-messages" id="chat-messages"></div>
+
+          <!-- Input -->
+          <div class="chat-input-bar">
+            <select class="chat-lang-select" id="chat-lang-select">
+              <option value="fr">🇫🇷 FR</option>
+              <option value="en">🇬🇧 EN</option>
+              <option value="ar">🇲🇦 AR</option>
+              <option value="es">🇪🇸 ES</option>
+            </select>
+            <input
+              class="chat-input"
+              id="chat-input"
+              type="text"
+              placeholder="Posez votre question sur ce document..."
+              autocomplete="off"
+            />
+            <button class="chat-send-btn" id="chat-send-btn" type="button">
+              <span id="chat-send-icon">→</span>
+            </button>
+          </div>
+
+          <!-- Suggestions rapides -->
+          <div class="chat-suggestions" id="chat-suggestions">
+            <button class="chat-suggestion" type="button" data-q="Quel est le sujet principal de ce document ?">Sujet principal</button>
+            <button class="chat-suggestion" type="button" data-q="Quelles sont les conclusions ?">Conclusions</button>
+            <button class="chat-suggestion" type="button" data-q="Résume ce document en 3 points.">Résumé rapide</button>
+            <button class="chat-suggestion" type="button" data-q="Quels sont les chiffres importants ?">Chiffres clés</button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
   </div>
 
   <script src="app.js"></script>

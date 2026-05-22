@@ -1,9 +1,12 @@
+"use strict";
+
+document.addEventListener("DOMContentLoaded", function() {
+
 /**
  * app.js — DocSummarizer
  * Gère : Auth (login/register/Google/logout) · Résumé · Historique
  */
 
-"use strict";
 
 /* ══════════════════════════════════════════════════════════════
    1. ÉTAT GLOBAL
@@ -633,7 +636,7 @@ function renderResult(data) {
   syncTabs();
   renderTab("summary", data);
 
-  
+  emptyState.hidden  = true;
   resultPanel.hidden = false;
   resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -706,7 +709,7 @@ function renderTab(tab, data) {
 
 function hideResult() {
   resultPanel.hidden = true;
-  
+  emptyState.hidden  = false;
 }
 
 btnCopy.addEventListener("click", () => {
@@ -877,3 +880,333 @@ if (_origFileInput) {
     }, 100);
   });
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE DOCUMENTS & CHAT
+   ═══════════════════════════════════════════════════════════ */
+
+var currentDocId  = null;
+var currentChatId = null;
+
+/* ── Navigation ─────────────────────────────────────────── */
+function showPage(page) {
+  var summarizePage = document.getElementById("page-summarize") || document.querySelector(".hero");
+  var docsPage      = document.getElementById("page-documents");
+  var mainLayout    = document.querySelector(".main-layout");
+  var footer        = document.querySelector(".footer");
+
+  document.querySelectorAll(".nav-tab").forEach(function(t) {
+    t.classList.toggle("active", t.dataset.page === page);
+  });
+
+  if (page === "documents") {
+    if (summarizePage) summarizePage.style.display = "none";
+    if (mainLayout)    mainLayout.style.display    = "none";
+    if (footer)        footer.style.display        = "none";
+    if (docsPage)      docsPage.hidden              = false;
+    loadDocumentsList();
+  } else {
+    if (summarizePage) summarizePage.style.display = "";
+    if (mainLayout)    mainLayout.style.display    = "";
+    if (footer)        footer.style.display        = "";
+    if (docsPage)      docsPage.hidden              = true;
+  }
+}
+
+document.querySelectorAll(".nav-tab").forEach(function(tab) {
+  tab.addEventListener("click", function() { showPage(tab.dataset.page); });
+});
+
+/* ── API Documents ──────────────────────────────────────── */
+async function apiUploadDocument(file) {
+  var form = new FormData();
+  form.append("file", file);
+  var res = await fetch("/api/documents/upload", {
+    method: "POST",
+    headers: authHeaders(),
+    body: form
+  });
+  var data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Upload échoué");
+  return data;
+}
+
+async function apiListDocuments() {
+  var res = await fetch("/api/documents?per_page=50", { headers: authHeaders() });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function apiDeleteDocument(id) {
+  var res = await fetch("/api/documents/" + id, {
+    method: "DELETE",
+    headers: authHeaders()
+  });
+  return res.ok;
+}
+
+async function apiAskDocument(docId, question, chatId, language) {
+  var res = await fetch("/api/documents/" + docId + "/ask", {
+    method: "POST",
+    headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
+    body: JSON.stringify({ question: question, chat_id: chatId || null, language: language || "fr" })
+  });
+  var data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Erreur");
+  return data;
+}
+
+/* ── Upload documents ───────────────────────────────────── */
+var docsFileInput = document.getElementById("docs-file-input");
+if (docsFileInput) {
+  docsFileInput.addEventListener("change", async function(e) {
+    var files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    var progress = document.getElementById("docs-upload-progress");
+    var fill     = document.getElementById("dup-fill");
+    var msg      = document.getElementById("dup-msg");
+
+    if (progress) progress.hidden = false;
+
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      if (fill) fill.style.width = Math.round(((i) / files.length) * 100) + "%";
+      if (msg)  msg.textContent  = "Upload : " + file.name;
+
+      try {
+        await apiUploadDocument(file);
+        showToast("✅ " + file.name + " stocké", "success", 3000);
+      } catch(err) {
+        showToast("❌ " + file.name + " : " + err.message, "error", 4000);
+      }
+    }
+
+    if (fill) fill.style.width = "100%";
+    if (msg)  msg.textContent  = "Terminé !";
+    setTimeout(function() {
+      if (progress) progress.hidden = true;
+      if (fill) fill.style.width = "0%";
+    }, 1500);
+
+    docsFileInput.value = "";
+    loadDocumentsList();
+  });
+}
+
+/* ── Liste documents ────────────────────────────────────── */
+async function loadDocumentsList() {
+  var list  = document.getElementById("docs-list");
+  var empty = document.getElementById("docs-list-empty");
+  if (!list) return;
+
+  list.innerHTML = "<div style='padding:1rem;text-align:center;color:var(--text-muted);font-size:13px;'>Chargement...</div>";
+
+  var data = await apiListDocuments();
+  if (!data || !data.items || !data.items.length) {
+    list.innerHTML = "";
+    if (empty) { empty.style.display = "flex"; list.appendChild(empty); }
+    return;
+  }
+
+  list.innerHTML = "";
+  data.items.forEach(function(doc, idx) {
+    var item = document.createElement("div");
+    item.className = "doc-item";
+    item.dataset.id = doc.id;
+    item.style.animationDelay = (idx * 0.05) + "s";
+    if (doc.id === currentDocId) item.classList.add("active");
+
+    item.innerHTML =
+      "<div class='doc-item-head'>" +
+        "<span class='doc-item-badge'>" + esc(doc.file_type) + "</span>" +
+        "<span class='doc-item-date'>" + new Date(doc.created_at).toLocaleDateString("fr-FR") + "</span>" +
+      "</div>" +
+      "<div class='doc-item-name'>📄 " + esc(doc.filename) + "</div>" +
+      "<div class='doc-item-meta'>" + (doc.word_count || 0).toLocaleString("fr-FR") + " mots · " + (doc.page_count || 1) + " page(s)</div>" +
+      "<button class='doc-item-delete' data-id='" + doc.id + "' title='Supprimer' type='button'>🗑</button>";
+
+    // Clic → ouvrir chat
+    item.addEventListener("click", function(e) {
+      if (e.target.closest(".doc-item-delete")) return;
+      openDocumentChat(doc);
+    });
+
+    // Supprimer
+    item.querySelector(".doc-item-delete").addEventListener("click", async function(e) {
+      e.stopPropagation();
+      if (!confirm("Supprimer \"" + doc.filename + "\" et tout son historique ?")) return;
+      var ok = await apiDeleteDocument(doc.id);
+      if (ok) {
+        showToast("Document supprimé", "info", 2500);
+        if (currentDocId === doc.id) closeDocumentChat();
+        loadDocumentsList();
+      }
+    });
+
+    list.appendChild(item);
+  });
+}
+
+/* ── Ouvrir un chat sur un document ─────────────────────── */
+function openDocumentChat(doc) {
+  currentDocId  = doc.id;
+  currentChatId = null;
+
+  // Marquer actif dans la liste
+  document.querySelectorAll(".doc-item").forEach(function(el) {
+    el.classList.toggle("active", el.dataset.id === doc.id);
+  });
+
+  // Mettre à jour le header
+  var nameEl = document.getElementById("chat-doc-name");
+  var metaEl = document.getElementById("chat-doc-meta");
+  if (nameEl) nameEl.textContent = doc.filename;
+  if (metaEl) metaEl.textContent = (doc.word_count || 0).toLocaleString("fr-FR") + " mots · " + (doc.page_count || 1) + " page(s)";
+
+  // Vider les messages
+  var msgs = document.getElementById("chat-messages");
+  if (msgs) {
+    msgs.innerHTML = "";
+    // Message de bienvenue
+    appendMessage("assistant", "Bonjour ! Je suis prêt à répondre à vos questions sur **" + doc.filename + "**. Que souhaitez-vous savoir ?");
+  }
+
+  // Afficher le chat
+  document.getElementById("chat-empty").hidden  = true;
+  document.getElementById("chat-active").hidden = false;
+
+  // Focus input
+  setTimeout(function() {
+    var input = document.getElementById("chat-input");
+    if (input) input.focus();
+  }, 200);
+}
+
+function closeDocumentChat() {
+  currentDocId  = null;
+  currentChatId = null;
+  document.getElementById("chat-empty").hidden  = false;
+  document.getElementById("chat-active").hidden = true;
+  document.querySelectorAll(".doc-item").forEach(function(el) { el.classList.remove("active"); });
+}
+
+var chatClose = document.getElementById("chat-doc-close");
+if (chatClose) chatClose.addEventListener("click", closeDocumentChat);
+
+/* ── Messages ───────────────────────────────────────────── */
+function appendMessage(role, content) {
+  var msgs = document.getElementById("chat-messages");
+  if (!msgs) return;
+
+  var div = document.createElement("div");
+  div.className = "chat-msg chat-msg--" + role;
+
+  var avatarText = role === "user" ? "R" : "🤖";
+  // Formater le contenu (bold, sauts de ligne)
+  var formatted = content
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n/g, "<br/>");
+
+  div.innerHTML =
+    "<div class='chat-msg-avatar'>" + (role === "user" ? "👤" : "🤖") + "</div>" +
+    "<div class='chat-msg-bubble'>" + formatted + "</div>";
+
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  var msgs = document.getElementById("chat-messages");
+  if (!msgs) return;
+  var typing = document.createElement("div");
+  typing.className = "chat-msg chat-msg--assistant";
+  typing.id = "chat-typing";
+  typing.innerHTML =
+    "<div class='chat-msg-avatar'>🤖</div>" +
+    "<div class='chat-typing'>" +
+      "<div class='chat-typing-dot'></div>" +
+      "<div class='chat-typing-dot'></div>" +
+      "<div class='chat-typing-dot'></div>" +
+    "</div>";
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  var t = document.getElementById("chat-typing");
+  if (t) t.remove();
+}
+
+/* ── Envoyer une question ───────────────────────────────── */
+async function sendQuestion(question) {
+  if (!currentDocId || !question.trim()) return;
+
+  var input   = document.getElementById("chat-input");
+  var sendBtn = document.getElementById("chat-send-btn");
+  var langSel = document.getElementById("chat-lang-select");
+  var lang    = langSel ? langSel.value : "fr";
+
+  // Masquer suggestions après première question
+  var suggestions = document.getElementById("chat-suggestions");
+  if (suggestions) suggestions.style.display = "none";
+
+  if (input)   input.value   = "";
+  if (sendBtn) sendBtn.disabled = true;
+
+  appendMessage("user", question);
+  showTyping();
+
+  try {
+    var res = await apiAskDocument(currentDocId, question, currentChatId, lang);
+    currentChatId = res.chat_id;
+    hideTyping();
+    appendMessage("assistant", res.answer);
+  } catch(err) {
+    hideTyping();
+    appendMessage("assistant", "Désolé, une erreur s'est produite. Veuillez réessayer.");
+    showToast("Erreur : " + err.message, "error", 4000);
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+    if (input)   input.focus();
+  }
+}
+
+/* ── Input & bouton envoyer ─────────────────────────────── */
+var chatInput   = document.getElementById("chat-input");
+var chatSendBtn = document.getElementById("chat-send-btn");
+
+if (chatInput) {
+  chatInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendQuestion(chatInput.value.trim());
+    }
+  });
+}
+
+if (chatSendBtn) {
+  chatSendBtn.addEventListener("click", function() {
+    var input = document.getElementById("chat-input");
+    if (input) sendQuestion(input.value.trim());
+  });
+}
+
+/* ── Suggestions rapides ────────────────────────────────── */
+document.querySelectorAll(".chat-suggestion").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    sendQuestion(btn.dataset.q);
+  });
+});
+
+/* ── Afficher nav si connecté ───────────────────────────── */
+var _origRenderUser = renderUser;
+renderUser = function(user) {
+  _origRenderUser(user);
+  var nav = document.getElementById("header-nav");
+  if (nav) nav.hidden = false;
+};
+
+
+
+}); // DOMContentLoaded

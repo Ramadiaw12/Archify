@@ -80,8 +80,9 @@ class User(Base):
     last_login      = Column(DateTime(timezone=True), nullable=True)
 
     # Relations
-    sessions        = relationship("Session",  back_populates="user", cascade="all, delete-orphan")
-    summaries       = relationship("Summary",  back_populates="user", cascade="all, delete-orphan")
+    sessions        = relationship("Session",        back_populates="user", cascade="all, delete-orphan")
+    summaries       = relationship("Summary",        back_populates="user", cascade="all, delete-orphan")
+    documents       = relationship("Document",       back_populates="user", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("ix_users_email_active", "email", "is_active"),
@@ -229,3 +230,106 @@ class SummaryPublic(BaseModel):
     created_at:    datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── Table : documents ─────────────────────────────────────────────────────────
+
+class Document(Base):
+    """
+    Document uploadé par un utilisateur.
+    Stocke le texte extrait — le fichier original est supprimé.
+    Les chunks/embeddings sont stockés dans DocumentChunk.
+    """
+    __tablename__ = "documents"
+
+    id          = Column(String(36),  primary_key=True, default=_uuid)
+    user_id     = Column(String(36),  ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    filename    = Column(String(255), nullable=False)
+    file_type   = Column(String(10),  nullable=False)
+    raw_text    = Column(Text,        nullable=False)
+    word_count  = Column(Integer,     nullable=False, default=0)
+    page_count  = Column(Integer,     nullable=False, default=1)
+    created_at  = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    # Relations
+    chunks   = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
+    user     = relationship("User", back_populates="documents")
+    chats    = relationship("Chat",          back_populates="document", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_documents_user_created", "user_id", "created_at"),
+    )
+
+    def __repr__(self):
+        return f"<Document id={self.id} filename={self.filename}>"
+
+
+# ── Table : document_chunks ───────────────────────────────────────────────────
+
+class DocumentChunk(Base):
+    """
+    Chunks de texte avec embeddings sérialisés.
+    Permet de recharger le contexte RAG depuis la DB.
+    """
+    __tablename__ = "document_chunks"
+
+    id          = Column(String(36), primary_key=True, default=_uuid)
+    document_id = Column(String(36), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
+    chunk_index = Column(Integer,    nullable=False)
+    text        = Column(Text,       nullable=False)
+    embedding   = Column(JSON,       nullable=True)   # vecteur sérialisé en liste
+
+    # Relation
+    document = relationship("Document", back_populates="chunks")
+
+    __table_args__ = (
+        Index("ix_chunks_document_id", "document_id"),
+    )
+
+
+# ── Table : chats ─────────────────────────────────────────────────────────────
+
+class Chat(Base):
+    """
+    Session de chat sur un document.
+    Un document peut avoir plusieurs sessions de chat.
+    """
+    __tablename__ = "chats"
+
+    id          = Column(String(36), primary_key=True, default=_uuid)
+    document_id = Column(String(36), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
+    user_id     = Column(String(36), ForeignKey("users.id",     ondelete="CASCADE"), nullable=False)
+    title       = Column(String(255), nullable=True)
+    created_at  = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    # Relations
+    document = relationship("Document", back_populates="chats")
+    messages = relationship("ChatMessage", back_populates="chat", cascade="all, delete-orphan", order_by="ChatMessage.created_at")
+
+    __table_args__ = (
+        Index("ix_chats_document_id", "document_id"),
+        Index("ix_chats_user_id",     "user_id"),
+    )
+
+
+# ── Table : chat_messages ─────────────────────────────────────────────────────
+
+class ChatMessage(Base):
+    """
+    Message dans une session de chat.
+    role : 'user' ou 'assistant'
+    """
+    __tablename__ = "chat_messages"
+
+    id         = Column(String(36), primary_key=True, default=_uuid)
+    chat_id    = Column(String(36), ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
+    role       = Column(String(10), nullable=False)   # 'user' | 'assistant'
+    content    = Column(Text,       nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    # Relation
+    chat = relationship("Chat", back_populates="messages")
+
+    __table_args__ = (
+        Index("ix_messages_chat_id", "chat_id"),
+    )
