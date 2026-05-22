@@ -633,7 +633,7 @@ function renderResult(data) {
   syncTabs();
   renderTab("summary", data);
 
-  emptyState.hidden  = true;
+  
   resultPanel.hidden = false;
   resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -706,7 +706,7 @@ function renderTab(tab, data) {
 
 function hideResult() {
   resultPanel.hidden = true;
-  emptyState.hidden  = false;
+  
 }
 
 btnCopy.addEventListener("click", () => {
