@@ -1291,3 +1291,467 @@ body {
   color: var(--green);
   border-color: rgba(45,106,79,.2);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATIONS & UX ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Animations d'entrée ─────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.4); opacity: 0.6; }
+}
+
+@keyframes bounceIn {
+  0%   { transform: scale(0.3); opacity: 0; }
+  50%  { transform: scale(1.05); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(100px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(100px); }
+}
+
+@keyframes progressBar {
+  from { width: 0%; }
+}
+
+@keyframes dropzonePulse {
+  0%, 100% { border-color: var(--sand-300); box-shadow: 0 0 0 0 rgba(166,50,38,0); }
+  50%       { border-color: var(--red-600); box-shadow: 0 0 0 8px rgba(166,50,38,0.08); }
+}
+
+@keyframes checkmark {
+  0%   { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* ── Barre de progression globale ────────────────────────── */
+.top-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red-600), var(--red-400), var(--sand-300));
+  background-size: 200% auto;
+  z-index: 9999;
+  transition: width 0.4s ease;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ── Guide steps indicator ───────────────────────────────── */
+.guide-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 1rem 0 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.guide-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.guide-step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--sand-300);
+  background: var(--bg-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-family: var(--f-mono);
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.guide-step.active .guide-step-circle {
+  border-color: var(--red-600);
+  background: var(--red-600);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(166,50,38,0.15);
+  animation: pulseDot 2s ease infinite;
+}
+
+.guide-step.done .guide-step-circle {
+  border-color: var(--green);
+  background: var(--green);
+  color: white;
+}
+
+.guide-step-label {
+  font-size: 10px;
+  font-family: var(--f-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.guide-step.active .guide-step-label { color: var(--red-600); font-weight: 600; }
+.guide-step.done  .guide-step-label  { color: var(--green); }
+
+.guide-line {
+  width: 60px;
+  height: 2px;
+  background: var(--sand-200);
+  margin: 0 4px;
+  margin-bottom: 16px;
+  transition: background 0.3s;
+}
+
+.guide-line.done { background: var(--green); }
+
+/* ── Cards avec animation d'entrée ──────────────────────── */
+.card {
+  animation: fadeInUp 0.5s ease both;
+}
+
+.form-column .card:nth-child(1) { animation-delay: 0.1s; }
+.form-column .card:nth-child(2) { animation-delay: 0.2s; }
+.form-column .card:nth-child(3) { animation-delay: 0.3s; }
+.form-column .card:nth-child(4) { animation-delay: 0.4s; }
+
+.result-column > * {
+  animation: fadeInRight 0.5s ease both;
+  animation-delay: 0.3s;
+}
+
+/* ── Dropzone améliorée ───────────────────────────────────── */
+.dropzone {
+  animation: dropzonePulse 3s ease infinite;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropzone:hover,
+.dropzone.drag-over {
+  animation: none;
+  transform: scale(1.01);
+}
+
+.dropzone .drop-icon {
+  animation: float 3s ease infinite;
+}
+
+.dropzone.drag-over .drop-icon {
+  animation: bounceIn 0.4s ease;
+}
+
+/* ── Tooltip guide ───────────────────────────────────────── */
+.step-tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--red-900);
+  color: var(--sand-100);
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+  box-shadow: var(--sh-lg);
+}
+
+.step-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: var(--red-900);
+}
+
+.card-head:hover .step-tooltip { opacity: 1; }
+
+/* ── Bouton principal amélioré ───────────────────────────── */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+
+.btn-primary:hover:not(:disabled)::after {
+  transform: translateX(100%);
+}
+
+.btn-primary:not(:disabled) {
+  animation: scaleIn 0.3s ease both;
+}
+
+/* ── Toast notifications ─────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-family: var(--f-body);
+  box-shadow: var(--sh-lg);
+  min-width: 280px;
+  max-width: 380px;
+  animation: toastIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  cursor: pointer;
+}
+
+.toast.removing {
+  animation: toastOut 0.3s ease forwards;
+}
+
+.toast-success {
+  background: var(--green-bg);
+  border: 1px solid var(--green-bd);
+  color: var(--green);
+}
+
+.toast-error {
+  background: var(--error-bg);
+  border: 1px solid var(--error-bd);
+  color: var(--error);
+}
+
+.toast-info {
+  background: var(--red-50);
+  border: 1px solid var(--red-100);
+  color: var(--red-700);
+}
+
+.toast-icon { font-size: 18px; flex-shrink: 0; }
+.toast-msg  { flex: 1; line-height: 1.4; }
+.toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  font-size: 14px;
+  padding: 0 2px;
+}
+.toast-close:hover { opacity: 1; }
+
+/* ── Step num badge animé ────────────────────────────────── */
+.step-num {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.card:hover .step-num {
+  background: var(--red-600);
+  color: white;
+  border-color: var(--red-600);
+  transform: scale(1.1);
+}
+
+/* ── Pipeline amélioré ───────────────────────────────────── */
+.pipe-step {
+  transition: transform 0.2s ease;
+}
+
+.pipe-step.active {
+  transform: scale(1.1);
+}
+
+.pipe-step.done {
+  transform: scale(1.0);
+}
+
+/* ── Résultat panel ──────────────────────────────────────── */
+.result-panel {
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── History items ───────────────────────────────────────── */
+.history-item {
+  animation: fadeInUp 0.3s ease both;
+  cursor: pointer;
+}
+
+.history-item:nth-child(1) { animation-delay: 0.05s; }
+.history-item:nth-child(2) { animation-delay: 0.10s; }
+.history-item:nth-child(3) { animation-delay: 0.15s; }
+.history-item:nth-child(4) { animation-delay: 0.20s; }
+.history-item:nth-child(5) { animation-delay: 0.25s; }
+
+/* ── Hint bulle d'aide ───────────────────────────────────── */
+.hint-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--red-50);
+  border: 1px solid var(--red-100);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--red-700);
+  margin-bottom: 0.75rem;
+  animation: slideDown 0.4s ease both;
+}
+
+.hint-bubble .hint-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--red-600);
+  border-radius: 50%;
+  animation: pulseDot 1.5s ease infinite;
+}
+
+/* ── Empty state amélioré ────────────────────────────────── */
+.empty-state .empty-icon {
+  animation: float 3s ease infinite;
+}
+
+/* ── Hero badge animé ────────────────────────────────────── */
+.hero-badge {
+  animation: slideDown 0.6s ease both;
+}
+
+.hero-title {
+  animation: fadeInUp 0.7s ease both;
+  animation-delay: 0.1s;
+}
+
+.hero-sub {
+  animation: fadeInUp 0.7s ease both;
+  animation-delay: 0.2s;
+}
+
+.hero-security {
+  animation: fadeInUp 0.7s ease both;
+  animation-delay: 0.3s;
+}
+
+/* ── Smooth scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--sand-100); }
+::-webkit-scrollbar-thumb { background: var(--sand-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--red-600); }
+
+/* ── Focus visible amélioré ──────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--red-600);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* ── Transitions globales ────────────────────────────────── */
+.card, .btn-primary, .toggle, .select, .input, .tab {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.2s;
+}
+
+/* ── Upload success state ────────────────────────────────── */
+.file-card {
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Stat boxes hover ────────────────────────────────────── */
+.stat-box {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+
+.stat-box:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
+}
+
+/* ── KP items hover ──────────────────────────────────────── */
+.kp-item {
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.kp-item:hover {
+  transform: translateX(4px);
+}
+
+/* ── Résumé text sélectionnable ──────────────────────────── */
+.summary-text {
+  user-select: text;
+  cursor: text;
+}
+
+/* ── Logo hover ──────────────────────────────────────────── */
+.logo-mark {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo:hover .logo-mark {
+  transform: rotate(-5deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(166,50,38,0.4);
+}
