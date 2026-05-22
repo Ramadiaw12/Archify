@@ -53,7 +53,7 @@ const progressFill  = $("progress-fill");
 const progressMsg   = $("progress-msg");
 const alertArea     = $("alert-area");
 const btnGo         = $("btn-go");
-const emptyState    = $("empty-state");
+const resultPlaceholder    = $("empty-state");
 const resultPanel   = $("result-panel");
 const resultBadges  = $("result-badges");
 const tabBody       = $("tab-body");
@@ -636,7 +636,7 @@ function renderResult(data) {
   syncTabs();
   renderTab("summary", data);
 
-  
+  if (resultPlaceholder) resultPlaceholder.hidden = true;
   resultPanel.hidden = false;
   resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -709,7 +709,7 @@ function renderTab(tab, data) {
 
 function hideResult() {
   resultPanel.hidden = true;
-  
+  if (resultPlaceholder) resultPlaceholder.hidden = false;
 }
 
 btnCopy.addEventListener("click", () => {

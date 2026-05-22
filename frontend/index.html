@@ -14,10 +14,10 @@
   <header class="header">
     <div class="container header-inner">
 
-      <div class="logo">
+      <a class="logo" href="/">
         <div class="logo-mark">DS</div>
         <span class="logo-name">Doc<span>Summarizer</span></span>
-      </div>
+      </a>
 
       <div class="header-tags">
         <span class="tag tag-green">✦ IA</span>
@@ -25,230 +25,301 @@
         <span class="tag tag-blue">Sécurisé</span>
       </div>
 
-      <!-- Navigation onglets -->
+      <!-- Navigation onglets — visible si connecté -->
       <nav class="header-nav" id="header-nav" hidden>
-        <button class="nav-tab active" data-page="summarize" type="button">
-          ✦ Résumé
-        </button>
-        <button class="nav-tab" data-page="documents" type="button">
-          📁 Mes Documents
-        </button>
+        <button class="nav-tab active" data-page="summarize" type="button">✦ Résumé</button>
+        <button class="nav-tab" data-page="documents" type="button">📁 Mes Documents</button>
       </nav>
 
-      <!-- Auth zone -->
-      <div class="header-auth" id="header-auth">
-        <!-- Injecté par JS selon l'état de connexion -->
-      </div>
+      <div class="header-auth" id="header-auth"></div>
 
     </div>
   </header>
 
-  <!-- ══════════════════════════════════════ HERO -->
-  <section class="hero">
-    <div class="container hero-inner">
-      <div class="hero-badge">Résumé intelligent · Multilingue · Sécurisé</div>
-      <h1 class="hero-title">
-        Résumez vos documents<br />
-        <em>en quelques secondes</em>
-      </h1>
-      <p class="hero-sub">
-        Déposez un rapport, une leçon ou un PDF —
-        notre pipeline <strong>RAG + LangGraph + Groq</strong>
-        en extrait l'essentiel de façon claire et précise.
-      </p>
-      <div class="hero-security">
-        🔒 Vos documents sont supprimés immédiatement après traitement
+  <!-- ══════════════════════════════════════ PAGE RÉSUMÉ -->
+  <div id="page-summarize">
+
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-badge">Résumé intelligent · Multilingue · Sécurisé</div>
+        <h1 class="hero-title">
+          Résumez vos documents<br/>
+          <em>en quelques secondes</em>
+        </h1>
+        <p class="hero-sub">
+          Déposez un rapport, une leçon ou un PDF —
+          notre agent <strong>IA</strong> en extrait l'essentiel
+          de façon claire et précise.
+        </p>
+        <div class="hero-security">
+          🔒 Vos documents sont supprimés immédiatement après traitement
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ══════════════════════════════════════ MAIN -->
-  <main class="container main-layout">
+    <main class="container main-layout">
 
-    <!-- ── COLONNE GAUCHE -->
-    <div class="form-column">
+      <!-- ── COLONNE GAUCHE — Formulaire -->
+      <div class="form-column">
 
-      <!-- ÉTAPE 1 — Upload -->
-      <section class="card">
-        <div class="card-head">
-          <span class="step-num">01</span>
-          <h2 class="card-title">Télécharger votre document</h2>
-        </div>
-
-        <div class="dropzone" id="dropzone" role="button" tabindex="0">
-          <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.md,.rtf" />
-          <div class="drop-icon">⬆</div>
-          <p class="drop-title">Glissez votre fichier ici</p>
-          <p class="drop-sub">ou <span class="link-text">cliquer pour parcourir</span></p>
-          <div class="drop-formats">
-            <span class="fmt">PDF</span>
-            <span class="fmt">DOCX</span>
-            <span class="fmt">TXT</span>
-            <span class="fmt">MD</span>
-            <span class="fmt">RTF</span>
+        <!-- ÉTAPE 1 — Upload -->
+        <section class="card">
+          <div class="card-head">
+            <span class="step-num">01</span>
+            <h2 class="card-title">Télécharger votre document</h2>
           </div>
-        </div>
 
-        <div class="file-preview" id="file-preview" hidden>
-          <div class="file-card" id="file-card"></div>
-        </div>
-      </section>
+          <div class="hint-bubble" id="hint-bubble">
+            <span class="hint-dot"></span>Commencez ici — glissez ou cliquez pour charger votre fichier
+          </div>
 
-      <!-- ÉTAPE 2 — Options -->
-      <section class="card">
-        <div class="card-head">
-          <span class="step-num">02</span>
-          <h2 class="card-title">Paramètres du résumé</h2>
-        </div>
+          <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Zone de dépôt de fichier">
+            <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.md,.rtf" />
+            <span class="drop-icon">⬆</span>
+            <p class="drop-title">Glissez votre fichier ici</p>
+            <p class="drop-sub">ou <span class="link-text">cliquer pour parcourir</span></p>
+            <div class="drop-formats">
+              <span class="fmt">PDF</span>
+              <span class="fmt">DOCX</span>
+              <span class="fmt">TXT</span>
+              <span class="fmt">MD</span>
+              <span class="fmt">RTF</span>
+            </div>
+          </div>
 
-        <div class="fields-row">
+          <div class="file-preview" id="file-preview" hidden>
+            <div class="file-card" id="file-card"></div>
+          </div>
+        </section>
+
+        <!-- ÉTAPE 2 — Options -->
+        <section class="card">
+          <div class="card-head">
+            <span class="step-num">02</span>
+            <h2 class="card-title">Paramètres du résumé</h2>
+          </div>
+
+          <div class="fields-row">
+            <div class="field">
+              <label class="field-label" for="sel-style">Style</label>
+              <select class="select" id="sel-style">
+                <option value="concis">Concis (2-3 §)</option>
+                <option value="detaille">Détaillé (4-6 §)</option>
+                <option value="bullet">Points clés</option>
+                <option value="executif">Rapport exécutif</option>
+                <option value="pedagogique">Fiche pédagogique</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="sel-lang">Langue de sortie</label>
+              <select class="select" id="sel-lang">
+                <option value="fr">🇫🇷 Français</option>
+                <option value="en">🇬🇧 Anglais</option>
+                <option value="ar">🇲🇦 Arabe</option>
+                <option value="es">🇪🇸 Espagnol</option>
+              </select>
+            </div>
+          </div>
+
           <div class="field">
-            <label class="field-label" for="sel-style">Style</label>
-            <select class="select" id="sel-style">
-              <option value="concis">Concis (2-3 §)</option>
-              <option value="detaille">Détaillé (4-6 §)</option>
-              <option value="bullet">Points clés</option>
-              <option value="executif">Rapport exécutif</option>
-              <option value="pedagogique">Fiche pédagogique</option>
-            </select>
+            <label class="field-label" for="range-detail">
+              Niveau de détail — <span class="range-val" id="range-val">3 / 5</span>
+            </label>
+            <input type="range" class="range-input" id="range-detail" min="1" max="5" value="3" step="1" />
+            <div class="range-ends"><span>Bref</span><span>Exhaustif</span></div>
           </div>
-          <div class="field">
-            <label class="field-label" for="sel-lang">Langue de sortie</label>
-            <select class="select" id="sel-lang">
-              <option value="fr">🇫🇷 Français</option>
-              <option value="en">🇬🇧 Anglais</option>
-              <option value="ar">🇲🇦 Arabe</option>
-              <option value="es">🇪🇸 Espagnol</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="field">
-          <label class="field-label" for="range-detail">
-            Niveau de détail — <span class="range-val" id="range-val">3 / 5</span>
-          </label>
-          <input type="range" class="range-input" id="range-detail" min="1" max="5" value="3" step="1" />
-          <div class="range-ends"><span>Bref</span><span>Exhaustif</span></div>
-        </div>
-
-        <fieldset class="toggles-group">
-          <legend class="field-label">Inclure dans le résumé</legend>
-          <div class="toggles" id="toggles">
-            <button class="toggle on" type="button" data-key="keypoints">Points clés</button>
-            <button class="toggle on" type="button" data-key="stats">Chiffres</button>
-            <button class="toggle"    type="button" data-key="quotes">Citations</button>
-            <button class="toggle"    type="button" data-key="entities">Entités</button>
-            <button class="toggle on" type="button" data-key="conclusion">Conclusion</button>
-          </div>
-        </fieldset>
-      </section>
-
-      <!-- ÉTAPE 3 — Lancer -->
-      <section class="card">
-        <div class="card-head">
-          <span class="step-num">03</span>
-          <h2 class="card-title">Générer le résumé</h2>
-        </div>
-
-        <div id="progress-area" hidden>
-          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-          <p class="progress-msg" id="progress-msg">Analyse en cours…</p>
-        </div>
-
-        <div id="alert-area" role="alert"></div>
-
-        <button class="btn-primary" id="btn-go" type="button" disabled>
-          ✦ &nbsp;Analyser et générer le résumé
-        </button>
-      </section>
-
-      <!-- HISTORIQUE (visible si connecté) -->
-      <section class="card" id="history-section" hidden>
-        <div class="card-head">
-          <span class="step-num">📋</span>
-          <h2 class="card-title">Mes résumés récents</h2>
-        </div>
-        <div id="history-list"></div>
-      </section>
-
-    </div>
-
-    <!-- ── COLONNE DROITE — Résultats -->
-    <div class="result-column">
-              <div class="ef-sub">Tous vos formats acceptés</div>
+          <fieldset class="toggles-group">
+            <legend class="field-label">Inclure dans le résumé</legend>
+            <div class="toggles" id="toggles">
+              <button class="toggle on" type="button" data-key="keypoints">Points clés</button>
+              <button class="toggle on" type="button" data-key="stats">Chiffres</button>
+              <button class="toggle"    type="button" data-key="quotes">Citations</button>
+              <button class="toggle"    type="button" data-key="entities">Entités</button>
+              <button class="toggle on" type="button" data-key="conclusion">Conclusion</button>
             </div>
+          </fieldset>
+        </section>
+
+        <!-- ÉTAPE 3 — Générer -->
+        <section class="card">
+          <div class="card-head">
+            <span class="step-num">03</span>
+            <h2 class="card-title">Générer le résumé</h2>
           </div>
-          <div class="empty-feature">
-            <span class="ef-icon">🌍</span>
-            <div>
-              <div class="ef-title">Français · English · العربية · Español</div>
-              <div class="ef-sub">Résumé dans la langue de votre choix</div>
-            </div>
+
+          <div id="progress-area" hidden>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            <p class="progress-msg" id="progress-msg">Analyse en cours…</p>
           </div>
-          <div class="empty-feature">
-            <span class="ef-icon">🎯</span>
-            <div>
-              <div class="ef-title">5 styles de résumé</div>
-              <div class="ef-sub">Concis · Détaillé · Points clés · Exécutif · Pédagogique</div>
-            </div>
+
+          <div id="alert-area" role="alert"></div>
+
+          <button class="btn-primary" id="btn-go" type="button" disabled>
+            ✦ &nbsp;Analyser et générer le résumé
+          </button>
+        </section>
+
+        <!-- HISTORIQUE — visible si connecté -->
+        <section class="card" id="history-section" hidden>
+          <div class="card-head">
+            <span class="step-num">📋</span>
+            <h2 class="card-title">Mes résumés récents</h2>
           </div>
-          <div class="empty-feature">
-            <span class="ef-icon">💾</span>
-            <div>
-              <div class="ef-title">Historique sauvegardé</div>
-              <div class="ef-sub">Retrouvez vos résumés à tout moment</div>
-            </div>
-          </div>
-        </div>
+          <div id="history-list"></div>
+        </section>
+
       </div>
 
-      <div class="result-panel" id="result-panel" hidden>
+      <!-- ── COLONNE DROITE — Résultats -->
+      <div class="result-column">
 
-        <div class="result-head">
-          <div class="result-badges" id="result-badges"></div>
-          <button class="btn-copy" id="btn-copy" type="button">📋 Copier</button>
+        <!-- Panneau résultat — caché par défaut -->
+        <div class="result-panel" id="result-panel" hidden>
+          <div class="result-head">
+            <div class="result-badges" id="result-badges"></div>
+            <button class="btn-copy" id="btn-copy" type="button">📋 Copier</button>
+          </div>
+          <div class="tabs" role="tablist">
+            <button class="tab active" role="tab" data-tab="summary">Résumé</button>
+            <button class="tab" role="tab" data-tab="keypoints">Points clés</button>
+            <button class="tab" role="tab" data-tab="stats">Statistiques</button>
+          </div>
+          <div class="tab-body" id="tab-body"></div>
         </div>
 
-        <div class="tabs" role="tablist">
-          <button class="tab active" role="tab" data-tab="summary">Résumé</button>
-          <button class="tab" role="tab" data-tab="keypoints">Points clés</button>
-          <button class="tab" role="tab" data-tab="stats">Statistiques</button>
+        <!-- Placeholder animé — visible avant génération -->
+        <div class="result-placeholder" id="result-placeholder">
+          <div class="rp-inner">
+            <div class="rp-icon">✦</div>
+            <div class="rp-title">Votre résumé apparaîtra ici</div>
+            <div class="rp-sub">Chargez un document et lancez l'analyse</div>
+            <div class="rp-steps">
+              <div class="rp-step"><span>1</span>Chargez un fichier</div>
+              <div class="rp-arrow">→</div>
+              <div class="rp-step"><span>2</span>Configurez</div>
+              <div class="rp-arrow">→</div>
+              <div class="rp-step"><span>3</span>Analysez</div>
+            </div>
+          </div>
         </div>
 
-        <div class="tab-body" id="tab-body"></div>
       </div>
-    </div>
 
-  </main>
+    </main>
+
+  </div>
 
   <!-- ══════════════════════════════════════ FOOTER -->
   <footer class="footer">
     <div class="container footer-inner">
       <p class="footer-stack">
-        <strong>DocSummarizer</strong> · Résumé intelligent de documents · Multilingue
+        <strong>DocSummarizer</strong> · Résumé intelligent · Multilingue · Sécurisé
       </p>
-      <p class="footer-privacy">🔒 Aucun document conservé — suppression immédiate après traitement</p>
+      <p class="footer-privacy">🔒 Vos données restent privées — traitement sécurisé</p>
     </div>
   </footer>
 
+  <!-- ══════════════════════════════════════ PAGE DOCUMENTS -->
+  <div id="page-documents" hidden>
+
+    <section class="hero hero--compact">
+      <div class="container hero-inner">
+        <div class="hero-badge">Vos documents · Questions intelligentes</div>
+        <h1 class="hero-title" style="font-size:clamp(22px,3vw,34px)">
+          Interrogez vos <em>documents</em>
+        </h1>
+        <p class="hero-sub" style="font-size:14px;">
+          Uploadez un document, posez des questions précises, obtenez des réponses contextuelles.
+        </p>
+      </div>
+    </section>
+
+    <main class="container docs-layout">
+
+      <!-- Sidebar -->
+      <aside class="docs-sidebar">
+        <div class="docs-upload-zone" id="docs-upload-zone">
+          <input type="file" id="docs-file-input" accept=".pdf,.doc,.docx,.txt,.md,.rtf" multiple />
+          <div class="duz-icon">⬆</div>
+          <div class="duz-title">Ajouter un document</div>
+          <div class="duz-sub">PDF · DOCX · TXT · MD · RTF</div>
+        </div>
+
+        <div class="docs-upload-progress" id="docs-upload-progress" hidden>
+          <div class="dup-bar"><div class="dup-fill" id="dup-fill"></div></div>
+          <div class="dup-msg" id="dup-msg">Upload en cours...</div>
+        </div>
+
+        <div class="docs-list" id="docs-list">
+          <div class="docs-list-empty" id="docs-list-empty">
+            <div style="font-size:32px;opacity:.3;">📁</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:8px;">Aucun document</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Chat -->
+      <div class="docs-chat" id="docs-chat">
+
+        <div class="chat-empty" id="chat-empty">
+          <div class="chat-empty-icon">💬</div>
+          <div class="chat-empty-title">Sélectionnez un document</div>
+          <div class="chat-empty-sub">Cliquez sur un document pour commencer à poser des questions</div>
+        </div>
+
+        <div class="chat-active" id="chat-active" hidden>
+          <div class="chat-doc-header" id="chat-doc-header">
+            <div class="chat-doc-info">
+              <span class="chat-doc-icon">📄</span>
+              <div>
+                <div class="chat-doc-name" id="chat-doc-name"></div>
+                <div class="chat-doc-meta" id="chat-doc-meta"></div>
+              </div>
+            </div>
+            <button class="chat-doc-close" id="chat-doc-close" type="button">✕</button>
+          </div>
+
+          <div class="chat-messages" id="chat-messages"></div>
+
+          <div class="chat-suggestions" id="chat-suggestions">
+            <button class="chat-suggestion" type="button" data-q="Quel est le sujet principal ?">Sujet principal</button>
+            <button class="chat-suggestion" type="button" data-q="Quelles sont les conclusions ?">Conclusions</button>
+            <button class="chat-suggestion" type="button" data-q="Résume en 3 points.">Résumé rapide</button>
+            <button class="chat-suggestion" type="button" data-q="Quels sont les chiffres importants ?">Chiffres clés</button>
+          </div>
+
+          <div class="chat-input-bar">
+            <select class="chat-lang-select" id="chat-lang-select">
+              <option value="fr">🇫🇷 FR</option>
+              <option value="en">🇬🇧 EN</option>
+              <option value="ar">🇲🇦 AR</option>
+              <option value="es">🇪🇸 ES</option>
+            </select>
+            <input class="chat-input" id="chat-input" type="text" placeholder="Posez votre question..." autocomplete="off" />
+            <button class="chat-send-btn" id="chat-send-btn" type="button">→</button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
   <!-- ══════════════════════════════════════ MODAL AUTH -->
   <div class="modal-overlay" id="modal-overlay" hidden>
-    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <button class="modal-close" id="modal-close" type="button">✕</button>
 
-      <button class="modal-close" id="modal-close" type="button" aria-label="Fermer">✕</button>
-
-      <!-- Onglets Login / Register -->
       <div class="modal-tabs">
         <button class="modal-tab active" data-modal-tab="login" type="button">Connexion</button>
         <button class="modal-tab" data-modal-tab="register" type="button">Inscription</button>
       </div>
 
-      <!-- ── LOGIN -->
       <div class="modal-panel" id="panel-login">
-        <h2 class="modal-title" id="modal-title">Bienvenue</h2>
+        <h2 class="modal-title">Bienvenue</h2>
         <p class="modal-sub">Connectez-vous pour sauvegarder vos résumés</p>
-
-        <!-- Google OAuth -->
         <a href="/auth/google/login" class="btn-google">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
@@ -258,9 +329,7 @@
           </svg>
           Continuer avec Google
         </a>
-
         <div class="modal-divider"><span>ou</span></div>
-
         <div class="field">
           <label class="field-label" for="login-email">Email</label>
           <input class="input" type="email" id="login-email" placeholder="votre@email.com" autocomplete="email" />
@@ -269,17 +338,13 @@
           <label class="field-label" for="login-password">Mot de passe</label>
           <input class="input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
         </div>
-
         <div id="login-error" class="form-error" hidden></div>
-
         <button class="btn-primary" id="btn-login" type="button">Se connecter</button>
       </div>
 
-      <!-- ── REGISTER -->
       <div class="modal-panel" id="panel-register" hidden>
         <h2 class="modal-title">Créer un compte</h2>
-        <p class="modal-sub">Gratuit · Vos résumés sauvegardés automatiquement</p>
-
+        <p class="modal-sub">Gratuit · Résumés sauvegardés automatiquement</p>
         <a href="/auth/google/login" class="btn-google">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
@@ -289,9 +354,7 @@
           </svg>
           S'inscrire avec Google
         </a>
-
         <div class="modal-divider"><span>ou</span></div>
-
         <div class="field">
           <label class="field-label" for="reg-name">Nom complet</label>
           <input class="input" type="text" id="reg-name" placeholder="Prénom Nom" autocomplete="name" />
@@ -305,9 +368,7 @@
           <input class="input" type="password" id="reg-password" placeholder="Min. 8 caractères" autocomplete="new-password" />
           <p class="field-hint">Majuscule · Chiffre · Caractère spécial</p>
         </div>
-
         <div id="register-error" class="form-error" hidden></div>
-
         <button class="btn-primary" id="btn-register" type="button">Créer mon compte</button>
       </div>
 
@@ -326,111 +387,6 @@
     <hr class="dropdown-sep" />
     <button class="dropdown-item" id="btn-history" type="button">📋 Mes résumés</button>
     <button class="dropdown-item dropdown-item--danger" id="btn-logout" type="button">🚪 Se déconnecter</button>
-  </div>
-
-  <!-- ══════════════════════════════════════ PAGE DOCUMENTS -->
-  <div id="page-documents" hidden>
-
-    <section class="hero hero--compact">
-      <div class="container hero-inner">
-        <div class="hero-badge">Vos documents · Questions intelligentes</div>
-        <h1 class="hero-title" style="font-size:clamp(22px,3vw,34px)">
-          Interrogez vos <em>documents</em>
-        </h1>
-        <p class="hero-sub" style="font-size:14px;">
-          Uploadez un document, posez des questions, obtenez des réponses précises.
-        </p>
-      </div>
-    </section>
-
-    <main class="container docs-layout">
-
-      <!-- ── COLONNE GAUCHE : liste documents -->
-      <aside class="docs-sidebar">
-
-        <!-- Upload -->
-        <div class="docs-upload-zone" id="docs-upload-zone">
-          <input type="file" id="docs-file-input" accept=".pdf,.doc,.docx,.txt,.md,.rtf" multiple />
-          <div class="duz-icon">⬆</div>
-          <div class="duz-title">Ajouter un document</div>
-          <div class="duz-sub">PDF · DOCX · TXT · MD · RTF</div>
-        </div>
-
-        <div class="docs-upload-progress" id="docs-upload-progress" hidden>
-          <div class="dup-bar"><div class="dup-fill" id="dup-fill"></div></div>
-          <div class="dup-msg" id="dup-msg">Upload en cours...</div>
-        </div>
-
-        <!-- Liste -->
-        <div class="docs-list" id="docs-list">
-          <div class="docs-list-empty" id="docs-list-empty">
-            <div style="font-size:32px;opacity:.3;">📁</div>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:8px;">Aucun document</div>
-          </div>
-        </div>
-
-      </aside>
-
-      <!-- ── COLONNE DROITE : chat -->
-      <div class="docs-chat" id="docs-chat">
-
-        <!-- Etat vide -->
-        <div class="chat-empty" id="chat-empty">
-          <div class="chat-empty-icon">💬</div>
-          <div class="chat-empty-title">Sélectionnez un document</div>
-          <div class="chat-empty-sub">Cliquez sur un document pour commencer à poser des questions</div>
-        </div>
-
-        <!-- Chat actif -->
-        <div class="chat-active" id="chat-active" hidden>
-
-          <!-- Header document actif -->
-          <div class="chat-doc-header" id="chat-doc-header">
-            <div class="chat-doc-info">
-              <span class="chat-doc-icon">📄</span>
-              <div>
-                <div class="chat-doc-name" id="chat-doc-name"></div>
-                <div class="chat-doc-meta" id="chat-doc-meta"></div>
-              </div>
-            </div>
-            <button class="chat-doc-close" id="chat-doc-close" type="button" title="Fermer">✕</button>
-          </div>
-
-          <!-- Messages -->
-          <div class="chat-messages" id="chat-messages"></div>
-
-          <!-- Input -->
-          <div class="chat-input-bar">
-            <select class="chat-lang-select" id="chat-lang-select">
-              <option value="fr">🇫🇷 FR</option>
-              <option value="en">🇬🇧 EN</option>
-              <option value="ar">🇲🇦 AR</option>
-              <option value="es">🇪🇸 ES</option>
-            </select>
-            <input
-              class="chat-input"
-              id="chat-input"
-              type="text"
-              placeholder="Posez votre question sur ce document..."
-              autocomplete="off"
-            />
-            <button class="chat-send-btn" id="chat-send-btn" type="button">
-              <span id="chat-send-icon">→</span>
-            </button>
-          </div>
-
-          <!-- Suggestions rapides -->
-          <div class="chat-suggestions" id="chat-suggestions">
-            <button class="chat-suggestion" type="button" data-q="Quel est le sujet principal de ce document ?">Sujet principal</button>
-            <button class="chat-suggestion" type="button" data-q="Quelles sont les conclusions ?">Conclusions</button>
-            <button class="chat-suggestion" type="button" data-q="Résume ce document en 3 points.">Résumé rapide</button>
-            <button class="chat-suggestion" type="button" data-q="Quels sont les chiffres importants ?">Chiffres clés</button>
-          </div>
-
-        </div>
-      </div>
-
-    </main>
   </div>
 
   <script src="app.js"></script>
