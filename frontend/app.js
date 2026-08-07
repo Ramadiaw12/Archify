@@ -8,9 +8,9 @@ document.addEventListener("DOMContentLoaded", function() {
  */
 
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    1. ÉTAT GLOBAL
-══════════════════════════════════════════════════════════════ */
+ */
 
 const state = {
   file:       null,
@@ -33,9 +33,9 @@ const state = {
   refresh_token: null,
 };
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    2. DOM
-══════════════════════════════════════════════════════════════ */
+ */
 
 const $ = id => document.getElementById(id);
 
@@ -81,9 +81,9 @@ const profileAvatar   = $("profile-avatar");
 const profileName     = $("profile-name");
 const profileEmail    = $("profile-email");
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    3. AUTH — TOKENS (localStorage)
-══════════════════════════════════════════════════════════════ */
+ */
 
 function saveTokens(access, refresh) {
   state.access_token  = access;
@@ -110,9 +110,9 @@ function authHeaders() {
     : {};
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    4. AUTH — API CALLS
-══════════════════════════════════════════════════════════════ */
+ */
 
 async function apiLogin(email, password) {
   const res = await fetch("/auth/login", {
@@ -177,9 +177,9 @@ async function apiSummaries(page = 1) {
   return res.json();
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    5. AUTH — ÉTAT UI
-══════════════════════════════════════════════════════════════ */
+ */
 
 async function initAuth() {
   // Récupérer les tokens depuis l'URL (retour Google OAuth)
@@ -295,9 +295,9 @@ $("btn-logout").addEventListener("click", async () => {
   historyList.innerHTML = "";
 });
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    6. MODAL AUTH
-══════════════════════════════════════════════════════════════ */
+ */
 
 function openModal(tab = "login") {
   switchModalTab(tab);
@@ -390,9 +390,9 @@ btnRegister.addEventListener("click", async () => {
 loginPassword.addEventListener("keydown", e => { if (e.key === "Enter") btnLogin.click(); });
 regPassword.addEventListener("keydown",   e => { if (e.key === "Enter") btnRegister.click(); });
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    7. HISTORIQUE
-══════════════════════════════════════════════════════════════ */
+ */
 
 async function apiSummaryById(id) {
   const res = await fetch("/api/summaries/" + id, { headers: authHeaders() });
@@ -449,9 +449,9 @@ async function loadHistory() {
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    8. UPLOAD FICHIER
-══════════════════════════════════════════════════════════════ */
+ */
 
 const ALLOWED = [".pdf",".doc",".docx",".txt",".md",".rtf"];
 

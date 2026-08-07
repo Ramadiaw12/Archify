@@ -608,9 +608,9 @@ response = client.chat.completions.create(
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer" width="100%"/>
 
-**Built with ❤️ by DIAWANE Ramatoulaye**
+
+**Built by DIAWANE Ramatoulaye**
 
 **RAG · LangGraph · Groq · FastAPI · PostgreSQL · uv**
 
