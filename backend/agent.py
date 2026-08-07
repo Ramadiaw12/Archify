@@ -27,7 +27,7 @@ from typing_extensions import TypedDict
 from config import settings
 from rag import chunker, rag_engine, Chunk
 
-# ── Client Groq natif ─────────────────────────────────────────────────────────
+#  Client Groq natif 
 
 def _get_client() -> Groq:
     """
@@ -58,7 +58,7 @@ def _chat(messages: list[dict], max_tokens: int = 2048) -> str:
     return response.choices[0].message.content or ""
 
 
-# ── État du graphe LangGraph ─────────────────────────────────────────────────
+#  État du graphe LangGraph 
 
 class AgentState(TypedDict):
     # Entrées
@@ -111,7 +111,7 @@ def _parse_json(text: str) -> dict:
     return {}
 
 
-# ── Nœud 1 : Chunking + Embedding ────────────────────────────────────────────
+#  Nœud 1 : Chunking + Embedding 
 
 def node_chunk_and_embed(state: AgentState) -> AgentState:
     """Découpe le texte en chunks."""
@@ -126,7 +126,7 @@ def node_chunk_and_embed(state: AgentState) -> AgentState:
     ]
     return {**state, "chunks": chunks_data}
 
-# ── Nœud 2 : Retrieval RAG ───────────────────────────────────────────────────
+#  Nœud 2 : Retrieval RAG 
 
 def node_retrieve(state: AgentState) -> AgentState:
     """Récupère les chunks pertinents via ChromaDB."""
@@ -138,7 +138,7 @@ def node_retrieve(state: AgentState) -> AgentState:
 
     return {**state, "context": context}
 
-# ── Nœud 3 : Classification Groq ────────────────────────────────────────────
+#  Nœud 3 : Classification Groq 
 
 def node_classify(state: AgentState) -> AgentState:
     """Classe le document via Groq natif."""
@@ -178,7 +178,7 @@ def node_classify(state: AgentState) -> AgentState:
     except Exception:
         return state
 
-# ── Nœud 4 : Routage ────────────────────────────────────────────────────────
+#  Nœud 4 : Routage 
 
 def node_route(state: AgentState) -> AgentState:
     """Choisit la stratégie de résumé selon le type de document."""
@@ -238,7 +238,7 @@ def node_summarize(state: AgentState) -> AgentState:
             ),
         }
 
-    # ── Construction du prompt ────────────────────────────────────────────────
+    #  Construction du prompt 
 
     lang_map = {
         "fr": "français",
@@ -318,7 +318,7 @@ DÉBUT DU DOCUMENT :
 
 JSON :"""
 
-    # ── Appel Groq natif ──────────────────────────────────────────────────────
+    #  Appel Groq natif 
 
     try:
         raw    = _chat(
@@ -355,7 +355,7 @@ JSON :"""
         return {**state, "error": f"Erreur Groq : {e}"}
 
 
-# ── Construction du graphe LangGraph ─────────────────────────────────────────
+#  Construction du graphe LangGraph 
 
 def build_graph() -> Any:
     builder = StateGraph(AgentState)
@@ -380,7 +380,7 @@ def build_graph() -> Any:
 graph = build_graph()
 
 
-# ── Fonction publique ─────────────────────────────────────────────────────────
+#  Fonction publique 
 
 def run_agent(
     raw_text:     str,

@@ -18,7 +18,7 @@ from fastapi import HTTPException, Request, status
 logger = logging.getLogger(__name__)
 
 
-# ── Structure de fenêtre glissante ────────────────────────────────────────────
+#  Structure de fenêtre glissante 
 
 @dataclass
 class RateWindow:
