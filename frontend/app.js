@@ -493,9 +493,9 @@ function renderFileCard(file) {
   filePreview.hidden = false;
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    9. OPTIONS
-══════════════════════════════════════════════════════════════ */
+ */
 
 selStyle.addEventListener("change", () => { state.options.style = selStyle.value; });
 selLang.addEventListener("change",  () => { state.options.lang  = selLang.value; });
@@ -512,9 +512,9 @@ togglesCt.addEventListener("click", e => {
   state.options[btn.dataset.key] = btn.classList.contains("on");
 });
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    10. PIPELINE ANIMATION
-══════════════════════════════════════════════════════════════ */
+ */
 
 function resetPipeline() { for (let i = 0; i < 6; i++) setPipe(i, null); }
 
@@ -542,9 +542,9 @@ async function animatePipeline() {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    11. ANALYSE PRINCIPALE
-══════════════════════════════════════════════════════════════ */
+ */
 
 btnGo.addEventListener("click", run);
 
@@ -617,9 +617,9 @@ async function run() {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    12. RÉSULTATS
-══════════════════════════════════════════════════════════════ */
+ */
 
 function renderResult(data) {
   const sentClass = { positif: "res-badge-pos", négatif: "res-badge-neg", negatif: "res-badge-neg" }[data.sentiment] || "res-badge-neu";
@@ -720,9 +720,9 @@ btnCopy.addEventListener("click", () => {
   });
 });
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    13. UTILITAIRES
-══════════════════════════════════════════════════════════════ */
+ */
 
 function updateBtn() {
   btnGo.disabled = !state.file || state.processing;
@@ -760,13 +760,13 @@ function esc(s) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    14. INIT
-══════════════════════════════════════════════════════════════ */
+ */
 
-/* ══════════════════════════════════════════════════════════════
+/* 
    UX GUIDE — TOASTS — PROGRESS BAR
-══════════════════════════════════════════════════════════════ */
+ */
 
 function initToasts() {
   if (!document.getElementById("toast-container")) {
@@ -860,7 +860,7 @@ function updateGuide(step) {
   }
 }
 
-/* ── INIT ─────────────────────────────────────────────────── */
+/*  INIT  */
 initToasts();
 initTopProgress();
 initGuide();
@@ -881,9 +881,9 @@ if (_origFileInput) {
   });
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* 
    PAGE DOCUMENTS & CHAT
-   ═══════════════════════════════════════════════════════════ */
+    */
 
 var currentDocId  = null;
 var currentChatId = null;
@@ -917,7 +917,7 @@ document.querySelectorAll(".nav-tab").forEach(function(tab) {
   tab.addEventListener("click", function() { showPage(tab.dataset.page); });
 });
 
-/* ── API Documents ──────────────────────────────────────── */
+/*  API Documents  */
 async function apiUploadDocument(file) {
   var form = new FormData();
   form.append("file", file);
@@ -956,7 +956,7 @@ async function apiAskDocument(docId, question, chatId, language) {
   return data;
 }
 
-/* ── Upload documents ───────────────────────────────────── */
+/*  Upload documents  */
 var docsFileInput = document.getElementById("docs-file-input");
 if (docsFileInput) {
   docsFileInput.addEventListener("change", async function(e) {
@@ -994,7 +994,7 @@ if (docsFileInput) {
   });
 }
 
-/* ── Liste documents ────────────────────────────────────── */
+/*  Liste documents  */
 async function loadDocumentsList() {
   var list  = document.getElementById("docs-list");
   var empty = document.getElementById("docs-list-empty");
@@ -1048,7 +1048,7 @@ async function loadDocumentsList() {
   });
 }
 
-/* ── Ouvrir un chat sur un document ─────────────────────── */
+/*  Ouvrir un chat sur un document  */
 function openDocumentChat(doc) {
   currentDocId  = doc.id;
   currentChatId = null;
@@ -1094,7 +1094,7 @@ function closeDocumentChat() {
 var chatClose = document.getElementById("chat-doc-close");
 if (chatClose) chatClose.addEventListener("click", closeDocumentChat);
 
-/* ── Messages ───────────────────────────────────────────── */
+/*  Messages  */
 function appendMessage(role, content) {
   var msgs = document.getElementById("chat-messages");
   if (!msgs) return;
@@ -1138,7 +1138,7 @@ function hideTyping() {
   if (t) t.remove();
 }
 
-/* ── Envoyer une question ───────────────────────────────── */
+/*  Envoyer une question  */
 async function sendQuestion(question) {
   if (!currentDocId || !question.trim()) return;
 
@@ -1172,7 +1172,7 @@ async function sendQuestion(question) {
   }
 }
 
-/* ── Input & bouton envoyer ─────────────────────────────── */
+/*  Input & bouton envoyer  */
 var chatInput   = document.getElementById("chat-input");
 var chatSendBtn = document.getElementById("chat-send-btn");
 
@@ -1192,7 +1192,7 @@ if (chatSendBtn) {
   });
 }
 
-/* ── Suggestions rapides ────────────────────────────────── */
+/*  Suggestions rapides  */
 document.querySelectorAll(".chat-suggestion").forEach(function(btn) {
   btn.addEventListener("click", function() {
     sendQuestion(btn.dataset.q);
