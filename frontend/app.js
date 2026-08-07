@@ -1199,7 +1199,7 @@ document.querySelectorAll(".chat-suggestion").forEach(function(btn) {
   });
 });
 
-/* ── Afficher nav si connecté ───────────────────────────── */
+/*  Afficher nav si connecté  */
 var _origRenderUser = renderUser;
 renderUser = function(user) {
   _origRenderUser(user);
@@ -1211,9 +1211,9 @@ renderUser = function(user) {
 
 }); // DOMContentLoaded
 
-/* ════════════════════════════════════════
+/* 
    INLINE CHATBOT — Questions sur le document
-   ════════════════════════════════════════ */
+    */
 
 var inlineDocId   = null;
 var inlineChatId  = null;
