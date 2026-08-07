@@ -28,7 +28,7 @@ MAX_FAILED_ATTEMPTS  = 5
 LOCKOUT_DURATION_MIN = 15
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers 
 
 async def _get_user_by_email(db: AsyncSession, email: str) -> User | None:
     result = await db.execute(select(User).where(User.email == email.lower()))
@@ -81,7 +81,7 @@ def _make_tokens(user_id: str, role: str) -> tuple[str, str, str, datetime]:
     return access_token, refresh_token, refresh_jti, refresh_exp
 
 
-# ── Inscription email/password ────────────────────────────────────────────────
+#  Inscription email/password 
 
 async def register_email(
     db:         AsyncSession,
@@ -133,7 +133,7 @@ async def register_email(
     )
 
 
-# ── Connexion email/password ──────────────────────────────────────────────────
+# Connexion email/password 
 
 async def login_email(
     db:         AsyncSession,
@@ -203,7 +203,7 @@ async def login_email(
     )
 
 
-# ── Connexion / Inscription Google OAuth ─────────────────────────────────────
+#  Connexion / Inscription Google OAuth 
 
 async def login_or_register_google(
     db:             AsyncSession,
@@ -270,7 +270,7 @@ async def login_or_register_google(
     )
 
 
-# ── Rafraîchissement de token ─────────────────────────────────────────────────
+#  Rafraîchissement de token 
 
 async def refresh_session(
     db:                 AsyncSession,
@@ -308,7 +308,7 @@ async def refresh_session(
     )
 
 
-# ── Déconnexion ───────────────────────────────────────────────────────────────
+#  Déconnexion 
 
 async def logout(db: AsyncSession, refresh_token_str: str) -> None:
     try:
@@ -318,7 +318,7 @@ async def logout(db: AsyncSession, refresh_token_str: str) -> None:
         pass
 
 
-# ── Utilisateur courant ───────────────────────────────────────────────────────
+# Utilisateur courant 
 
 async def get_current_user(db: AsyncSession, access_token_str: str) -> UserPublic:
     err = HTTPException(

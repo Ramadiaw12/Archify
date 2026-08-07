@@ -21,7 +21,7 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-# ── Hachage mot de passe ──────────────────────────────────────────────────────
+#  Hachage mot de passe 
 
 # bcrypt avec work factor 12 (bon compromis sécurité/performance en 2024)
 pwd_context = CryptContext(
@@ -66,7 +66,7 @@ def validate_password_strength(password: str) -> list[str]:
     return errors
 
 
-# ── Gestion des tokens JWT ────────────────────────────────────────────────────
+#  Gestion des tokens JWT 
 
 def _build_token(
     subject: str,

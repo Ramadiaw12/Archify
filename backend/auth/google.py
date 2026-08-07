@@ -27,7 +27,7 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-# ── URLs Google OAuth ─────────────────────────────────────────────────────────
+#  URLs Google OAuth 
 GOOGLE_AUTH_URL     = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL    = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
@@ -36,7 +36,7 @@ GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 GOOGLE_SCOPES = ["openid", "email", "profile"]
 
 
-# ── Génération de l'URL d'autorisation ───────────────────────────────────────
+#  Génération de l'URL d'autorisation 
 
 def build_google_auth_url(state: str) -> str:
     """
@@ -65,7 +65,7 @@ def generate_oauth_state() -> str:
     return secrets.token_urlsafe(32)
 
 
-# ── Échange du code d'autorisation ───────────────────────────────────────────
+#  Échange du code d'autorisation 
 
 async def exchange_code_for_tokens(code: str) -> dict:
     """
@@ -96,7 +96,7 @@ async def exchange_code_for_tokens(code: str) -> dict:
         return response.json()
 
 
-# ── Vérification et extraction du profil ────────────────────────────────────
+# Vérification et extraction du profil 
 
 def verify_google_id_token(id_token_str: str) -> dict:
     """

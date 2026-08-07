@@ -31,7 +31,7 @@ router = APIRouter(prefix="/auth", tags=["Authentification"])
 _oauth_states: dict[str, float] = {}
 
 
-# ── Inscription ───────────────────────────────────────────────────────────────
+# Inscription 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(
@@ -48,7 +48,7 @@ async def register(
     )
 
 
-# ── Connexion ─────────────────────────────────────────────────────────────────
+# Connexion 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
@@ -65,7 +65,7 @@ async def login(
     )
 
 
-# ── Déconnexion ───────────────────────────────────────────────────────────────
+#  Déconnexion 
 
 @router.post("/logout", status_code=204)
 async def logout(
@@ -77,7 +77,7 @@ async def logout(
     return Response(status_code=204)
 
 
-# ── Rafraîchissement ──────────────────────────────────────────────────────────
+# Rafraîchissement 
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
@@ -93,7 +93,7 @@ async def refresh(
     )
 
 
-# ── Profil ────────────────────────────────────────────────────────────────────
+#  Profil 
 
 @router.get("/me", response_model=UserPublic)
 async def get_me(user: UserPublic = Depends(require_auth)):
@@ -101,7 +101,7 @@ async def get_me(user: UserPublic = Depends(require_auth)):
     return user
 
 
-# ── Google OAuth — Login ──────────────────────────────────────────────────────
+#  Google OAuth — Login 
 
 @router.get("/google/login", response_class=RedirectResponse)
 async def google_login():

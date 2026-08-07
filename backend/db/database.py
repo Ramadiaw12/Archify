@@ -47,7 +47,7 @@ class Base(DeclarativeBase):
     pass
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers 
 
 async def create_tables() -> None:
     """
