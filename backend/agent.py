@@ -215,7 +215,7 @@ def node_route(state: AgentState) -> AgentState:
     return {**state, "route": route}
 
 
-# ── Nœud 5 : Résumé Groq ────────────────────────────────────────────────────
+#  Nœud 5 : Résumé Groq 
 
 def node_summarize(state: AgentState) -> AgentState:
     """

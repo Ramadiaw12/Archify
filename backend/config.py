@@ -12,14 +12,14 @@ for _candidate in [_here / ".env", _root / ".env", Path(".env")]:
         print(f"[Config] .env trouvé : {_candidate.resolve()}")
         break
 else:
-    print("[Config] ⚠️  Aucun .env trouvé")
+    print("[Config]   Aucun .env trouvé")
 
 
 class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=None, case_sensitive=False)
 
-    # ── Groq ──────────────────────────────────────────────────────────────────
+    #  Groq 
     groq_api_key:    str = ""
     groq_model:      str = "llama-3.3-70b-versatile"
     embedding_model: str = "all-MiniLM-L6-v2"

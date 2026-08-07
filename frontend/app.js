@@ -888,7 +888,7 @@ if (_origFileInput) {
 var currentDocId  = null;
 var currentChatId = null;
 
-/* ── Navigation ─────────────────────────────────────────── */
+/*  Navigation  */
 function showPage(page) {
   var summarizePage = document.getElementById("page-summarize") || document.querySelector(".hero");
   var docsPage      = document.getElementById("page-documents");
