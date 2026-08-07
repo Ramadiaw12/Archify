@@ -41,7 +41,7 @@ class RateWindow:
             self.requests.append(time.time())
 
 
-# ── Store en mémoire ──────────────────────────────────────────────────────────
+#  Store en mémoire 
 
 class InMemoryRateLimiter:
     """
@@ -102,11 +102,11 @@ class InMemoryRateLimiter:
         return len(to_del)
 
 
-# ── Instance globale ──────────────────────────────────────────────────────────
+#  Instance globale 
 limiter = InMemoryRateLimiter()
 
 
-# ── Helpers FastAPI ───────────────────────────────────────────────────────────
+#  Helpers FastAPI 
 
 def get_client_ip(request: Request) -> str:
     """

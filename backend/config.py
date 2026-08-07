@@ -24,37 +24,37 @@ class Settings(BaseSettings):
     groq_model:      str = "llama-3.3-70b-versatile"
     embedding_model: str = "all-MiniLM-L6-v2"
 
-    # ── RAG ───────────────────────────────────────────────────────────────────
+    #  RAG 
     chunk_size:    int = 800
     chunk_overlap: int = 100
     top_k_chunks:  int = 5
 
-    # ── Serveur ───────────────────────────────────────────────────────────────
+    #  Serveur 
     host:  str  = "0.0.0.0"
     port:  int  = 8000
     debug: bool = False
 
-    # ── Upload ────────────────────────────────────────────────────────────────
+    #  Upload 
     max_file_size_mb:        int       = 20
     allowed_extensions:      list[str] = [".pdf",".docx",".doc",".txt",".md",".rtf"]
     upload_dir:              str       = "/tmp/docsummarizer"
     delete_after_processing: bool      = True
 
-    # ── PostgreSQL ────────────────────────────────────────────────────────────
+    #  PostgreSQL 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/docsummarizer"
 
-    # ── JWT ───────────────────────────────────────────────────────────────────
+    #  JWT 
     jwt_secret_key:              str = "change-me-use-openssl-rand-hex-32"
     jwt_algorithm:               str = "HS256"
     access_token_expire_minutes: int = 15
     refresh_token_expire_days:   int = 7
 
-    # ── Google OAuth ──────────────────────────────────────────────────────────
+    # Google OAuth 
     google_client_id:     str = ""
     google_client_secret: str = ""
     google_redirect_uri:  str = "http://localhost:8000/auth/google/callback"
 
-    # ── CORS ──────────────────────────────────────────────────────────────────
+    #  CORS 
     allowed_origins: list[str] = ["http://localhost:8000", "http://localhost:3000"]
 
 
