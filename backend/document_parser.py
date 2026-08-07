@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
-# ── Imports conditionnels ──────────────────────────────────────────────────────
+# Imports conditionnels 
 
 try:
     import pdfplumber
@@ -39,7 +39,7 @@ except ImportError:
     _RTF_OK = False
 
 
-# ── Modèle de données ──────────────────────────────────────────────────────────
+# Modèle de données
 
 @dataclass
 class ParsedDocument:
@@ -53,7 +53,7 @@ class ParsedDocument:
     metadata: dict = field(default_factory=dict)  # Auteur, titre, etc.
 
 
-# ── Parseur principal ──────────────────────────────────────────────────────────
+# Parseur principal 
 
 class DocumentParser:
     """
@@ -108,7 +108,7 @@ class DocumentParser:
             metadata=meta,
         )
 
-    # ── Parseurs ──────────────────────────────────────────────────────────────
+    #  Parseurs 
 
     def _parse_pdf(self, path: str) -> tuple[str, int, dict]:
         """Extrait le texte page par page depuis un PDF."""
@@ -182,7 +182,7 @@ class DocumentParser:
             content = f.read()
         return _rtf_to_text(content), 1, {}
 
-    # ── Nettoyage ──────────────────────────────────────────────────────────────
+    #  Nettoyage 
 
     def _clean(self, text: str) -> str:
         """

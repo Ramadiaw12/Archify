@@ -31,7 +31,7 @@ chunker    = TextChunker(chunk_size=settings.chunk_size, overlap=settings.chunk_
 rag_engine = RAGEngine()
 
 
-# ── Stocker un document ───────────────────────────────────────────────────────
+# Stocker un document 
 
 async def store_document(
     db:        AsyncSession,
@@ -86,7 +86,7 @@ async def store_document(
     return doc
 
 
-# ── Liste des documents ───────────────────────────────────────────────────────
+# Liste des documents 
 
 async def get_documents(
     db:       AsyncSession,
@@ -131,7 +131,7 @@ async def get_documents(
     }
 
 
-# ── Récupérer un document ─────────────────────────────────────────────────────
+# Récupérer un document 
 
 async def get_document(
     db:          AsyncSession,
@@ -150,7 +150,7 @@ async def get_document(
     return doc
 
 
-# ── Supprimer un document ─────────────────────────────────────────────────────
+# Supprimer un document 
 
 async def delete_document(
     db:          AsyncSession,
@@ -164,7 +164,7 @@ async def delete_document(
     logger.info(f"Document supprimé : {document_id}")
 
 
-# ── RAG depuis la DB ──────────────────────────────────────────────────────────
+#  RAG depuis la DB 
 
 async def _retrieve_from_db(
     db:          AsyncSession,
@@ -214,7 +214,7 @@ async def _retrieve_from_db(
     )
 
 
-# ── Poser une question sur un document ───────────────────────────────────────
+# Poser une question sur un document 
 
 async def ask_document(
     db:          AsyncSession,
@@ -311,7 +311,7 @@ Question : {question}"""
     }
 
 
-# ── Historique d'un chat ──────────────────────────────────────────────────────
+# Historique d'un chat 
 
 async def get_chat_history(
     db:      AsyncSession,
@@ -352,7 +352,7 @@ async def get_chat_history(
     }
 
 
-# ── Liste des chats d'un document ────────────────────────────────────────────
+# Liste des chats d'un document 
 
 async def get_document_chats(
     db:          AsyncSession,

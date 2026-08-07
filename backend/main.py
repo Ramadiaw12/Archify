@@ -39,11 +39,11 @@ async def lifespan(app: FastAPI):
     os.makedirs(settings.upload_dir, exist_ok=True)
     try:
         await create_tables()
-        logger.info("✅ PostgreSQL connecté")
+        logger.info(" PostgreSQL connecté")
     except Exception as e:
         logger.warning(f"⚠️  PostgreSQL non disponible : {e}")
-    print(f"\n✅  DocSummarizer démarré → http://localhost:{settings.port}")
-    print(f"🤖  Groq : {settings.groq_model}")
+    print(f"\n DocSummarizer démarré → http://localhost:{settings.port}")
+    print(f" Groq : {settings.groq_model}")
     print(f"🔐  Google OAuth : {'✅' if settings.google_client_id else '⚠️  non configuré'}\n")
     yield
     await close_db()
@@ -73,7 +73,7 @@ _frontend = Path(__file__).parent.parent / "frontend"
 _parser   = DocumentParser()
 
 
-# ── Frontend ──────────────────────────────────────────────────────────────────
+# Frontend 
 
 @app.get("/", include_in_schema=False)
 async def index():
@@ -89,7 +89,7 @@ async def js():
     return FileResponse(str(_frontend / "app.js"), media_type="application/javascript")
 
 
-# ── Health ────────────────────────────────────────────────────────────────────
+# Health 
 
 @app.get("/api/health", tags=["Système"])
 async def health():
@@ -111,7 +111,7 @@ async def health():
     }
 
 
-# ── Résumé ────────────────────────────────────────────────────────────────────
+#  Résumé 
 
 @app.post("/api/summarize", tags=["Agent"])
 async def summarize(
@@ -258,7 +258,7 @@ async def summarize(
             os.remove(tmp_path)
 
 
-# ── Historique ────────────────────────────────────────────────────────────────
+# Historique 
 
 @app.get("/api/summaries", tags=["Agent"])
 async def get_summaries(
@@ -343,9 +343,9 @@ async def get_summary_by_id(
         },
     }
 
-# ═══════════════════════════════════════════════════════════
+# 
 # DOCUMENTS — Upload, Liste, Chat
-# ═══════════════════════════════════════════════════════════
+# 
 
 @app.post("/api/documents/upload", tags=["Documents"])
 async def upload_document(
