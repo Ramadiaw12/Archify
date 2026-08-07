@@ -22,7 +22,7 @@ from sqlalchemy.orm import relationship
 from db.database import Base
 
 
-# ── Enums ─────────────────────────────────────────────────────────────────────
+# Enums 
 
 class AuthProvider(str, PyEnum):
     EMAIL  = "email"
@@ -34,7 +34,7 @@ class UserRole(str, PyEnum):
     ADMIN = "admin"
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers 
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -43,7 +43,7 @@ def _uuid() -> str:
     return str(uuid.uuid4())
 
 
-# ── Table : users ─────────────────────────────────────────────────────────────
+#  Table : users 
 
 class User(Base):
     """
@@ -92,7 +92,7 @@ class User(Base):
         return f"<User id={self.id} email={self.email}>"
 
 
-# ── Table : sessions ──────────────────────────────────────────────────────────
+# Table : sessions 
 
 class Session(Base):
     """
@@ -122,7 +122,7 @@ class Session(Base):
         return f"<Session jti={self.jti} user_id={self.user_id}>"
 
 
-# ── Table : summaries ─────────────────────────────────────────────────────────
+#  Table : summaries 
 
 class Summary(Base):
     """
@@ -165,7 +165,7 @@ class Summary(Base):
         return f"<Summary id={self.id} user_id={self.user_id} file={self.filename}>"
 
 
-# ── Schémas Pydantic (réponses API) ──────────────────────────────────────────
+#  Schémas Pydantic (réponses API) 
 # Séparés des modèles SQLAlchemy pour découpler ORM et API
 
 from pydantic import BaseModel, EmailStr, Field
@@ -232,7 +232,7 @@ class SummaryPublic(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ── Table : documents ─────────────────────────────────────────────────────────
+#  Table : documents 
 
 class Document(Base):
     """
@@ -264,7 +264,7 @@ class Document(Base):
         return f"<Document id={self.id} filename={self.filename}>"
 
 
-# ── Table : document_chunks ───────────────────────────────────────────────────
+#  Table : document_chunks 
 
 class DocumentChunk(Base):
     """
@@ -287,7 +287,7 @@ class DocumentChunk(Base):
     )
 
 
-# ── Table : chats ─────────────────────────────────────────────────────────────
+# Table : chats 
 
 class Chat(Base):
     """
@@ -312,7 +312,7 @@ class Chat(Base):
     )
 
 
-# ── Table : chat_messages ─────────────────────────────────────────────────────
+#  Table : chat_messages 
 
 class ChatMessage(Base):
     """

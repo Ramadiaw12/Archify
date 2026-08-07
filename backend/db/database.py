@@ -21,7 +21,7 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-# ── Engine async ──────────────────────────────────────────────────────────────
+# Engine async 
 # asyncpg = driver PostgreSQL natif async, bien plus rapide que psycopg2
 engine: AsyncEngine = create_async_engine(
     settings.database_url,          # postgresql+asyncpg://user:pass@host/db
@@ -32,7 +32,7 @@ engine: AsyncEngine = create_async_engine(
     pool_recycle=3600,              # recycle les connexions après 1h
 )
 
-# ── Session factory ───────────────────────────────────────────────────────────
+#  Session factory 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -41,7 +41,7 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-# ── Base des modèles ──────────────────────────────────────────────────────────
+#  Base des modèles *
 class Base(DeclarativeBase):
     """Classe de base dont héritent tous les modèles SQLAlchemy."""
     pass
